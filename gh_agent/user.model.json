@@ -1,0 +1,148 @@
+{
+    "nationalId": {
+      "type": "string",
+      "required": true,
+      "description": "Costa Rican national ID (cédula). Unique identifier used for login.",
+      "example": "1-1234-0562"
+    },
+    "firstName": {
+      "type": "string",
+      "required": true,
+      "description": "Employee's first name",
+      "example": "Carlos"
+    },
+    "lastName": {
+      "type": "string",
+      "required": true,
+      "description": "Employee's last name",
+      "example": "Mora"
+    },
+    "email": {
+      "type": "string",
+      "required": false,
+      "description": "Optional email address (not used for login)",
+      "example": "carlos.mora@example.com"
+    },
+    "phone": {
+      "type": "string",
+      "required": true,
+      "description": "Phone number in E.164 format",
+      "example": "+50688881234"
+    },
+    "role": {
+      "type": "enum",
+      "required": true,
+      "values": ["employee", "admin", "superadmin"],
+      "description": "User role",
+      "example": "employee"
+    },
+    "password": {
+      "type": "string",
+      "required": true,
+      "description": "BCrypt hash of the user's password",
+      "example": "$2b$10$abcdEFGHIJKLMNOPQRSTUvwxyz1234567890abcdEFGH"
+    },
+    "status": {
+      "type": "enum",
+      "required": true,
+      "values": ["active", "inactive", "terminated"],
+      "description": "Current employment status",
+      "example": "active"
+    },
+    "birthDate": {
+      "type": "string",
+      "format": "date",
+      "required": false,
+      "description": "Date of birth",
+      "example": "1990-05-15"
+    },
+    "address": {
+      "type": "string",
+      "required": false,
+      "description": "Home address",
+      "example": "San José, Costa Rica"
+    },
+    "subsidiaryId": {
+      "type": "string",
+      "format": "ObjectId",
+      "required": false,
+      "description": "Reference to the subsidiary where the user works",
+      "example": "64f8db8f13ab08d7fa621db2"
+    },
+    "position": {
+        "type": "string",
+        "required": false,
+        "description": "Job title or role within the company",
+        "enum": [
+          "Gerente",
+          "Supervisor",
+          "Lavador Tier 1",
+          "Lavador Tier 2",
+          "Chofer"
+        ],
+        "example": "Supervisor"
+      },
+    "hireDate": {
+      "type": "string",
+      "format": "date",
+      "required": false,
+      "description": "Date when the user was hired",
+      "example": "2023-01-10"
+    },
+    "documents": {
+      "type": "array",
+      "required": false,
+      "description": "Array of uploaded documents",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Hoja de Delincuencia"
+          },
+          "type": {
+            "type": "enum",
+            "values": ["pdf", "image", "doc"],
+            "example": "pdf"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://storage.example.com/docs/hoja-delincuencia.pdf"
+          },
+          "uploadedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-11-01T08:30:00Z"
+          }
+        }
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "required": false,
+      "description": "Timestamp of user creation",
+      "example": "2024-11-01T08:30:00Z"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "required": false,
+      "description": "Timestamp of last update",
+      "example": "2024-11-01T10:00:00Z"
+    },
+    "createdBy": {
+      "type": "string",
+      "format": "ObjectId",
+      "required": false,
+      "description": "Admin or superadmin who created the user",
+      "example": "64f8db8f13ab08d7fa621db1"
+    },
+    "updatedBy": {
+      "type": "string",
+      "format": "ObjectId",
+      "required": false,
+      "description": "Admin or superadmin who last updated the user",
+      "example": "64f8db8f13ab08d7fa621db1"
+    }
+  }
