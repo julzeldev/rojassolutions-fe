@@ -1,0 +1,100 @@
+[
+  {
+    "name": "Ciudad Toyota – La Uruca",
+    "contact": "Juancito Pérez",
+    "address": "Ciudad Toyota, La Uruca, San José, Costa Rica",
+    "plusCode": "XV3R+2P San José, San José Province",
+    "mapsUrl": "https://www.google.com/maps/place/Ciudad+Toyota/@9.9525625,-84.1107624,17z/data=!4m12!1m5!3m4!2s66XQXV3R%2B2P!8m2!3d9.9525625!4d-84.1081875!3m5!1s0x8fa0fb4e4158e159:0x56f5fcb7b21ea239!8m2!3d9.9525686!4d-84.1082431!16s%2Fg%2F1tdx9rv8?entry=ttu&g_ep=EgoyMDI1MDUyNy4wIKXMDSoJLDEwMjExNDU1SAFQAw%3D%3D",
+    "phone": "2519-7777",
+    "hours": {
+      "monday_friday": "8:00 a.m. - 5:30 p.m.",
+      "saturday": "8:00 a.m. - 1:00 p.m."
+    },
+    "latitude": 9.9525625,
+    "longitude": -84.1107624
+  },
+  {
+    "name": "Curridabat",
+    "contact": "Juancito Pérez",
+    "address": "500 metros Este del Indoor Club., San José, Curridabat, 11801",
+    "plusCode": "WXC7+2R Curridabat, San José Province",
+    "mapsUrl": "https://www.google.com/maps/place/Purdy+Motor/@9.9200625,-84.0380124,17z/data=!4m12!1m5!3m4!2s66XQWXC7%2B2R!8m2!3d9.9200625!4d-84.0354375!3m5!1s0x8fa0e3eb0b1bd689:0xcbaf4b60fe020f1d!8m2!3d9.9200227!4d-84.0354321!16s%2Fg%2F11b8b2npkk?entry=ttu&g_ep=EgoyMDI1MDUyNy4wIKXMDSoJLDEwMjExNDU1SAFQAw%3D%3D",
+    "phone": "2524-0474",
+    "hours": {
+      "monday_friday": "8:00 a.m. - 5:30 p.m.",
+      "saturday": "8:00 a.m. - 1:00 p.m."
+    },
+    "latitude": 9.9200625,
+    "longitude": -84.0380124
+  },
+  {
+    "name": "Paseo Colón",
+    "contact": "Juancito Pérez",
+    "address": "Calles 34 y 36, Antiguo Edificio Toyota, P.º Colón, San José, 10103",
+    "plusCode": "WWP3+9X San José, San José Province",
+    "mapsUrl": "https://www.google.com/maps/place/Toyota+-+Paseo+Col%C3%B3n/@9.9359375,-84.0976374,17z/data=!4m12!1m5!3m4!2s66XQWWP3%2B9X!8m2!3d9.9359375!4d-84.0950625!3m5!1s0x8fa0e3568bf3e99d:0x374ab21a4c6f0fca!8m2!3d9.9359906!4d-84.0950125!16s%2Fg%2F11gbfdbgg8?entry=ttu&g_ep=EgoyMDI1MDUyNy4wIKXMDSoJLDEwMjExNDU1SAFQAw%3D%3D",
+    "phone": "2287-4100",
+    "hours": {
+      "monday_friday": "8:00 a.m. - 5:30 p.m.",
+      "saturday": "9:00 a.m. - 3:00 p.m."
+    },
+    "latitude": 9.9359375,
+    "longitude": -84.0976374
+  },
+  {
+    "name": "Zapote",
+    "contact": "Juancito Pérez",
+    "address": "125 metros Este de la Rotonda de las Garantías Sociales, Zapote, San José, Costa Rica",
+    "plusCode": "WWCR+2X San José, San José Province",
+    "mapsUrl": "https://www.google.com/maps/place/Toyota+Zapote/@9.9200379,-84.0601042,16.99z/data=!4m12!1m5!3m4!2s66XQWWCR%2B2X!8m2!3d9.9200625!4d-84.0575625!3m5!1s0x8fa0e39e476aafbd:0x421d40bba3569551!8m2!3d9.9201054!4d-84.0576088!16s%2Fg%2F1ts3gp88?entry=ttu&g_ep=EgoyMDI1MDUyNy4wIKXMDSoJLDEwMjExNDU1SAFQAw%3D%3D",
+    "phone": "2527-0000",
+    "hours": {
+      "monday_friday": "8:00 a.m. - 5:30 p.m.",
+      "saturday": "8:00 a.m. - 1:00 p.m."
+    },
+    "latitude": 9.9200379,
+    "longitude": -84.0601042
+  },
+  {
+    "name": "Terramall",
+    "contact": "Juancito Pérez",
+    "address": "Terramall San Diego Cartago CR 30302, Provincia de Cartago, San Diego",
+    "plusCode": "W223+JC San Diego, Cartago Province",
+    "mapsUrl": "https://www.google.com/maps/place/Toyota+%E2%80%A2+Terramall/@9.9015406,-83.9966018,20z/data=!3m1!5s0x8fa0e172e746434b:0x52fe2e077b2bed3a!4m12!1m5!3m4!2s66XRW223%2BJC!8m2!3d9.9015625!4d-83.9964375!3m5!1s0x8fa0e16b8fc85457:0x70aa657b4ad76b0e!8m2!3d9.9015483!4d-83.9964441!16s%2Fg%2F11f6hmpbgx?entry=ttu&g_ep=EgoyMDI1MDUyNy4wIKXMDSoJLDEwMjExNDU1SAFQAw%3D%3D",
+    "phone": "2518-0909",
+    "hours": {
+      "monday_saturday": "10:00 a.m. - 7:00 p.m.",
+      "sunday": "Cerrado"
+    },
+    "latitude": 9.9015406,
+    "longitude": -83.9966018
+  },
+  {
+    "name": "Avenida Escazú",
+    "contact": "Juancito Pérez",
+    "address": "Centro Comercial Avenida Escazú, Costado este del Hospital CIMA, Autopista Próspero Fernández., San José, Escazú, 10201",
+    "plusCode": "WVQ5+M3 Escazu, San José Province",
+    "mapsUrl": "https://www.google.com/maps/place/Purdy+Motor+Toyota/@9.9391875,-84.1448874,17z/data=!4m12!1m5!3m4!2s66XQWVQ5%2BM3!8m2!3d9.9391875!4d-84.1423125!3m5!1s0x8fa0fc80183563db:0x3415f10031c88f8d!8m2!3d9.939201!4d-84.1423715!16s%2Fg%2F11bzrh9s1d?entry=ttu&g_ep=EgoyMDI1MDUyNy4wIKXMDSoJLDEwMjExNDU1SAFQAw%3D%3D",
+    "phone": "4100-7838",
+    "hours": {
+      "monday_friday": "9:00 a.m. - 6:30 p.m.",
+      "saturday": "9:00 a.m. - 2:00 p.m."
+    },
+    "latitude": 9.9391875,
+    "longitude": -84.1448874
+  },
+  {
+    "name": "Purdy Trabajo",
+    "contact": "Juancito Pérez",
+    "address": "De la Pozuelo, 100 metros al Norte Uruca San José CR 10107, C. 70, San José",
+    "plusCode": "XV3Q+RJ San José, San José Province",
+    "mapsUrl": "https://www.google.com/maps/place/Purdy+Trabajo/@9.9545625,-84.1135124,17z/data=!4m12!1m5!3m4!2s66XQXV3Q%2BRJ!8m2!3d9.9545625!4d-84.1109375!3m5!1s0x8fa0fb4f359b4079:0xfa4d0889ae521cbc!8m2!3d9.9545667!4d-84.1109552!16s%2Fg%2F11c60yj6pk?entry=ttu&g_ep=EgoyMDI1MDUyNy4wIKXMDSoJLDEwMjExNDU1SAFQAw%3D%3D",
+    "phone": "2520-9880 / 2520-9834",
+    "hours": {
+      "monday_friday": "7:00 a.m. - 5:30 p.m.",
+      "saturday": "8:00 a.m. - 1:00 p.m."
+    },
+    "latitude": 9.9545625,
+    "longitude": -84.1135124
+  }
+]

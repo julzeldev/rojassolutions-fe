@@ -3,6 +3,8 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import LoginPage from './features/auth/login/LoginPage';
 import Dashboard from './features/dashboard/DashboardPage';
 import ProfilePage from './features/profile/ProfilePage';
+import SubsidiaryPage from './features/subsidiaries/SubsidiaryPage';
+import Attendance from './features/assistance/Attendance';
 
 import { useAuth } from './hooks/useAuth';
 
@@ -31,7 +33,9 @@ export default function App() {
         }
       >
         <Route path="/" element={<Dashboard />} />
+        <Route path="/sucursales" element={<SubsidiaryPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/asistencia" element={<Attendance />} />
         {/* …other modules… */}
       </Route>
 
