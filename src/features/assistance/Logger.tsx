@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Button, Stack, TextField, MenuItem, Typography, CircularProgress } from '@mui/material';
+import { Button, Stack, Typography, CircularProgress } from '@mui/material';
 import RoomIcon from '@mui/icons-material/Room';
-import { format } from 'date-fns';
 import { useAuth } from '../../hooks/useAuth';
 
 // AttendanceLogEntry type for attendance logs
@@ -18,11 +17,13 @@ export interface AttendanceLogEntry {
 
 interface LoggerProps {
   onAddLog: (entry: AttendanceLogEntry) => void;
+  lastEntryType?: 'check-in' | 'check-out' | null;
 }
 
-const Logger: React.FC<LoggerProps> = ({ onAddLog }) => {
+const Logger: React.FC<LoggerProps> = ({ onAddLog, lastEntryType }) => {
   const { user } = useAuth();
-  const [type, setType] = useState<'check-in' | 'check-out'>('check-in');
+  // Only allow the next logical type
+  const nextType: 'check-in' | 'check-out' = lastEntryType === 'check-in' ? 'check-out' : 'check-in';
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,7 +44,7 @@ const Logger: React.FC<LoggerProps> = ({ onAddLog }) => {
       (pos) => {
         const entry: AttendanceLogEntry = {
           id: `${Date.now()}`,
-          type,
+          type: nextType,
           timestamp: new Date().toISOString(),
           latitude: pos.coords.latitude,
           longitude: pos.coords.longitude,
@@ -64,16 +65,6 @@ const Logger: React.FC<LoggerProps> = ({ onAddLog }) => {
   return (
     <Stack spacing={2}>
       <Typography variant="h6">Registrar asistencia</Typography>
-      <TextField
-        select
-        label="Tipo"
-        value={type}
-        onChange={(e) => setType(e.target.value as 'check-in' | 'check-out')}
-        size="small"
-      >
-        <MenuItem value="check-in">Entrada</MenuItem>
-        <MenuItem value="check-out">Salida</MenuItem>
-      </TextField>
       <Button
         variant="contained"
         color="primary"
@@ -81,7 +72,7 @@ const Logger: React.FC<LoggerProps> = ({ onAddLog }) => {
         onClick={handleRegister}
         disabled={loading}
       >
-        {loading ? <CircularProgress size={20} /> : 'Registrar'}
+        {loading ? <CircularProgress size={20} /> : `Registrar ${nextType === 'check-in' ? 'Entrada' : 'Salida'}`}
       </Button>
       {error && <Typography color="error">{error}</Typography>}
     </Stack>
