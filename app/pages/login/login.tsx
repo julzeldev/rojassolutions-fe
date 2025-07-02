@@ -94,7 +94,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
 
     if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
       setEmailError(true);
-      setEmailErrorMessage("Please enter a valid email address.");
+      setEmailErrorMessage("Por favor, introduce una dirección de correo válida.");
       isValid = false;
     } else {
       setEmailError(false);
@@ -103,7 +103,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
 
     if (!password.value || password.value.length < 6) {
       setPasswordError(true);
-      setPasswordErrorMessage("Password must be at least 6 characters long.");
+      setPasswordErrorMessage("La contraseña debe tener al menos 6 caracteres.");
       isValid = false;
     } else {
       setPasswordError(false);
@@ -126,7 +126,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
             variant="h4"
             sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
           >
-            Sign in
+            Iniciar sesión
           </Typography>
           <Box
             component="form"
@@ -140,14 +140,14 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
             }}
           >
             <FormControl>
-              <FormLabel htmlFor="email">Email</FormLabel>
+              <FormLabel htmlFor="email">Correo electrónico</FormLabel>
               <TextField
                 error={emailError}
                 helperText={emailErrorMessage}
                 id="email"
                 type="email"
                 name="email"
-                placeholder="your@email.com"
+                placeholder="tu@email.com"
                 autoComplete="email"
                 autoFocus
                 required
@@ -157,7 +157,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
               />
             </FormControl>
             <FormControl>
-              <FormLabel htmlFor="password">Password</FormLabel>
+              <FormLabel htmlFor="password">Contraseña</FormLabel>
               <TextField
                 error={passwordError}
                 helperText={passwordErrorMessage}
@@ -175,7 +175,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
             </FormControl>
             <FormControlLabel
               control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
+              label="Recuérdame"
             />
             <ForgotPassword open={open} handleClose={handleClose} />
             <Button
@@ -184,7 +184,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
               variant="contained"
               onClick={validateInputs}
             >
-              Sign in
+              Iniciar sesión
             </Button>
             <Link
               component="button"
@@ -193,7 +193,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
               variant="body2"
               sx={{ alignSelf: "center" }}
             >
-              Forgot your password?
+              ¿Olvidaste tu contraseña?
             </Link>
           </Box>
           <Divider sx={{ my: 2 }} />
