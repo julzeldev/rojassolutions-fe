@@ -1,34 +1,36 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback, FormEvent } from 'react'
 import { useNavigate, useLocation, NavLink } from 'react-router'
 import { useAuth } from '../../../auth/useAuth'
 import { Avatar, Box, Button, Container, Typography, Alert, CircularProgress, Stack, Divider, Paper } from '@mui/material'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
-import { FormTextField, PasswordField } from '../../components/form'
+import { FormTextField, PasswordField } from '../../../components/form'
 
 // Mobile-first responsive login (email + password). If backend indicates MFA required,
 // display MFA field and verify via verifyMfa().
 export function LoginPage() {
   const { login, verifyMfa, isAuthenticated } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
+  const location = useLocation() as ReturnType<typeof useLocation> & { state?: { from?: string } }
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [mfaCode, setMfaCode] = useState('')
-  const [awaitingMfa, setAwaitingMfa] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState(null)
-  const [info, setInfo] = useState(null)
+  const [email, setEmail] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
+  const [mfaCode, setMfaCode] = useState<string>('')
+  const [awaitingMfa, setAwaitingMfa] = useState<boolean>(false)
+  const [submitting, setSubmitting] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
+  const [info, setInfo] = useState<string | null>(null)
 
-  // Redirect if already logged in
-  if (isAuthenticated) {
-    // Attempt redirect to originally intended route if provided via state
-    const from = location.state?.from || '/'
-    navigate(from, { replace: true })
-  }
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      const from = location.state?.from || '/'
+      navigate(from, { replace: true })
+    }
+  }, [isAuthenticated, location.state, navigate])
 
-  async function handleLogin(e) {
+  const handleLogin = useCallback(async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (awaitingMfa || submitting) return
     setError(null)
     setInfo(null)
     setSubmitting(true)
@@ -40,31 +42,34 @@ export function LoginPage() {
       } else {
         navigate('/')
       }
-    } catch (err) {
-      setError(err.message || 'Login failed')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Login failed'
+      setError(msg)
     } finally {
       setSubmitting(false)
     }
-  }
+  }, [awaitingMfa, email, login, navigate, password, submitting])
 
-  async function handleVerifyMfa(e) {
+  const handleVerifyMfa = useCallback(async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (!awaitingMfa || submitting) return
     setError(null)
     setSubmitting(true)
     try {
       await verifyMfa(mfaCode.trim())
       navigate('/')
-    } catch (err) {
-      setError(err.message || 'MFA verification failed')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'MFA verification failed'
+      setError(msg)
     } finally {
       setSubmitting(false)
     }
-  }
+  }, [awaitingMfa, mfaCode, navigate, submitting, verifyMfa])
 
   return (
     <Container component="main" maxWidth="xs" sx={{ display: 'flex', alignItems: 'center', minHeight: '100dvh' }}>
       <Paper elevation={3} sx={{ width: '100%', p: { xs: 3, sm: 4 } }}>
-        <Stack spacing={2} component="form" onSubmit={awaitingMfa ? handleVerifyMfa : handleLogin}>
+  <Stack spacing={2} component="form" noValidate onSubmit={awaitingMfa ? handleVerifyMfa : handleLogin}>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
             <Avatar sx={{ bgcolor: 'primary.main' }}>
               <LockOutlinedIcon />
@@ -73,8 +78,8 @@ export function LoginPage() {
               {awaitingMfa ? 'Enter MFA Code' : 'Sign in'}
             </Typography>
           </Box>
-          {error && <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>}
-          {info && <Alert severity="info" onClose={() => setInfo(null)}>{info}</Alert>}
+          {error && <Alert role="alert" severity="error" onClose={() => setError(null)}>{error}</Alert>}
+          {info && <Alert role="status" severity="info" onClose={() => setInfo(null)}>{info}</Alert>}
 
           {!awaitingMfa && (
             <>
@@ -111,7 +116,8 @@ export function LoginPage() {
               onChange={(val) => setMfaCode(val)}
               autoFocus
               disabled={submitting}
-              inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', 'data-testid': 'mfa-input' }}
+              autoComplete="one-time-code"
+              inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', 'data-testid': 'mfa-input', maxLength: 6 }}
               helperText="Check your authenticator app or email for the code"
             />
           )}
@@ -120,7 +126,7 @@ export function LoginPage() {
             type="submit"
             fullWidth
             variant="contained"
-            disabled={submitting || (!awaitingMfa && (!email || !password)) || (awaitingMfa && !mfaCode)}
+            disabled={submitting || (!awaitingMfa && (!email || !password)) || (awaitingMfa && mfaCode.length !== 6)}
             startIcon={submitting ? <CircularProgress size={18} /> : null}
           >
             {awaitingMfa ? 'Verify Code' : 'Sign In'}
@@ -131,7 +137,12 @@ export function LoginPage() {
             </Typography>
           )}
           {awaitingMfa && (
-            <Button variant="text" size="small" onClick={() => { setAwaitingMfa(false); setMfaCode('') }} disabled={submitting}>
+            <Button
+              variant="text"
+              size="small"
+              onClick={() => { if (!submitting) { setAwaitingMfa(false); setMfaCode('') } }}
+              disabled={submitting}
+            >
               Back to login
             </Button>
           )}

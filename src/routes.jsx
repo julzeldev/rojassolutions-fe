@@ -6,7 +6,7 @@ import { HomePage } from './ui/pages/HomePage.jsx'
 import { AboutPage } from './ui/pages/AboutPage.jsx'
 import { NotFoundPage } from './ui/pages/NotFoundPage.jsx'
 import { LoginPage } from './ui/pages/unauthorized/LoginPage.jsx'
-import { ProtectedRoute } from './auth/ProtectedRoute.jsx'
+import { ProtectedRoute } from './components/ProtectedRoute.jsx'
 import { SecuritySettings } from './ui/pages/settings/SecuritySettings.jsx'
 
 export const router = createBrowserRouter([
