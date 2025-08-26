@@ -5,6 +5,9 @@ import { RootLayout } from './ui/layouts/RootLayout.jsx'
 import { HomePage } from './ui/pages/HomePage.jsx'
 import { AboutPage } from './ui/pages/AboutPage.jsx'
 import { NotFoundPage } from './ui/pages/NotFoundPage.jsx'
+import { LoginPage } from './ui/pages/unauthorized/LoginPage.jsx'
+import { ProtectedRoute } from './auth/ProtectedRoute.jsx'
+import { SecuritySettings } from './ui/pages/settings/SecuritySettings.jsx'
 
 export const router = createBrowserRouter([
   {
@@ -12,9 +15,27 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     errorElement: <NotFoundPage />, // fallback for route errors
     children: [
-      { index: true, element: <HomePage /> },
-      { path: 'about', element: <AboutPage /> },
-      { path: '*', element: <NotFoundPage /> },
+      { index: true, element: (
+        <ProtectedRoute>
+          <HomePage />
+        </ProtectedRoute>
+      ) },
+      { path: 'about', element: (
+        <ProtectedRoute>
+          <AboutPage />
+        </ProtectedRoute>
+      ) },
+      { path: 'settings/security', element: (
+        <ProtectedRoute>
+          <SecuritySettings />
+        </ProtectedRoute>
+      ) },
+      { path: 'login', element: <LoginPage /> },
+      { path: '*', element: (
+        <ProtectedRoute>
+          <NotFoundPage />
+        </ProtectedRoute>
+      ) },
     ],
   },
 ])
