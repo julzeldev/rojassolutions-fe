@@ -8,6 +8,7 @@ import { NotFoundPage } from './ui/pages/NotFoundPage.jsx'
 import { LoginPage } from './ui/pages/unauthorized/LoginPage.jsx'
 import { ProtectedRoute } from './components/ProtectedRoute.jsx'
 import { SecuritySettings } from './ui/pages/settings/SecuritySettings.jsx'
+import { EmployeesPage } from './ui/pages/employees/EmployeesPage.tsx'
 
 export const router = createBrowserRouter([
   {
@@ -23,6 +24,11 @@ export const router = createBrowserRouter([
       { path: 'about', element: (
         <ProtectedRoute>
           <AboutPage />
+        </ProtectedRoute>
+      ) },
+      { path: 'empleados', element: (
+        <ProtectedRoute>
+          <EmployeesPage />
         </ProtectedRoute>
       ) },
       { path: 'settings/security', element: (
