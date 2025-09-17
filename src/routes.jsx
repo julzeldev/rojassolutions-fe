@@ -1,7 +1,7 @@
 // Central route definitions using React Router v7 style API
 import React from 'react'
 import { createBrowserRouter } from 'react-router'
-import { RootLayout } from './ui/layouts/RootLayout.jsx'
+import { RootLayout } from './ui/layouts/RootLayout.tsx'
 import { HomePage } from './ui/pages/HomePage.jsx'
 import { AboutPage } from './ui/pages/AboutPage.jsx'
 import { NotFoundPage } from './ui/pages/NotFoundPage.jsx'
