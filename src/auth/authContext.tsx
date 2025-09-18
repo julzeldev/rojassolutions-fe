@@ -15,7 +15,7 @@ const REFRESH_TOKEN_KEY = 'rs.refreshToken'
 const ROLE_KEY = 'rs.userRole'
 
 // Helper: decode JWT payload safely (no verification, just base64 decode)
-interface DecodedJwtPayload { role?: string }
+interface DecodedJwtPayload { role?: string; exp?: number }
 function decodeJwt(token: string | null | undefined): DecodedJwtPayload | null {
   if (!token) return null
   try {
@@ -51,6 +51,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Internal MFA pending state (not part of required public state spec)
   const pendingUserIdRef = useRef<string | null>(null)
+  const logoutTimerRef = useRef<number | null>(null)
+
+  const clearLogoutTimer = useCallback(() => {
+    if (logoutTimerRef.current !== null) {
+      window.clearTimeout(logoutTimerRef.current)
+      logoutTimerRef.current = null
+    }
+  }, [])
+
+  const clearSession = useCallback(() => {
+    clearLogoutTimer()
+    setAccessToken(null)
+    setIsAuthenticated(false)
+    setUserRole(null)
+    localStorage.removeItem(REFRESH_TOKEN_KEY)
+  }, [clearLogoutTimer])
 
   // Persist changes
   useEffect(() => {
@@ -64,17 +80,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [userRole])
 
   const applyAuthTokens = useCallback((token: string | null, refreshToken?: string | null) => {
-    setAccessToken(token)
-    setIsAuthenticated(Boolean(token))
-    if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
-    else localStorage.removeItem(REFRESH_TOKEN_KEY)
-    if (token) {
-      const decoded = decodeJwt(token)
-      setUserRole(decoded?.role || null)
-    } else {
-      setUserRole(null)
+    if (!token) {
+      clearSession()
+      return
     }
-  }, [])
+
+    setAccessToken(token)
+    setIsAuthenticated(true)
+
+    if (typeof refreshToken !== 'undefined') {
+      if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
+      else localStorage.removeItem(REFRESH_TOKEN_KEY)
+    }
+  }, [clearSession])
 
   const login = useCallback(async (email: string, password: string): Promise<{ mfaRequired: boolean }> => {
     const data: LoginResponse = await authService.login(email, password)
@@ -122,6 +140,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
     await authService.resetPassword(token, newPassword)
   }, [])
 
+  useEffect(() => {
+    clearLogoutTimer()
+
+    if (!accessToken) {
+      setUserRole(null)
+      return
+    }
+
+    const decoded = decodeJwt(accessToken)
+    setUserRole(decoded?.role || null)
+
+    const expSeconds = decoded?.exp
+    if (!expSeconds) return
+
+    const expiresInMs = expSeconds * 1000 - Date.now()
+    if (expiresInMs <= 0) {
+      clearSession()
+      return
+    }
+
+    logoutTimerRef.current = window.setTimeout(() => {
+      clearSession()
+    }, expiresInMs)
+  }, [accessToken, clearLogoutTimer, clearSession])
+
   const value: AuthContextValue = useMemo(() => ({
     isAuthenticated,
     userRole,
@@ -139,4 +182,3 @@ export function AuthProvider({ children }: AuthProviderProps) {
     </AuthContext.Provider>
   )
 }
-
