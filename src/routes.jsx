@@ -2,7 +2,7 @@
 import React from 'react'
 import { createBrowserRouter } from 'react-router'
 import { RootLayout } from './ui/layouts/RootLayout.tsx'
-import { HomePage } from './ui/pages/HomePage.jsx'
+import { HomePage } from './ui/pages/HomePage.tsx'
 import { AboutPage } from './ui/pages/AboutPage.jsx'
 import { NotFoundPage } from './ui/pages/NotFoundPage.jsx'
 import { LoginPage } from './ui/pages/unauthorized/LoginPage.jsx'
