@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router';
 import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -12,6 +13,7 @@ import { EmployeeFormDialog } from './EmployeeFormDialog';
 import { ConfirmDialog } from '../../../components/ConfirmDialog';
 
 export function EmployeesPage() {
+  const navigate = useNavigate();
   const {
     employees,
     isLoadingList,
@@ -73,6 +75,13 @@ export function EmployeesPage() {
   const handleDeleteRequest = useCallback((id: string) => {
     setDeleteTargetId(id);
   }, []);
+
+  const handleSelectEmployee = useCallback(
+    (id: string) => {
+      navigate(`/empleados/${id}`);
+    },
+    [navigate],
+  );
 
   const handleCloseForm = useCallback(() => {
     setIsFormOpen(false);
@@ -150,6 +159,7 @@ export function EmployeesPage() {
           isLoading={isLoadingList}
           onEdit={handleEditRequest}
           onDelete={handleDeleteRequest}
+          onSelect={handleSelectEmployee}
         />
       </Stack>
       <EmployeeFormDialog

@@ -159,7 +159,7 @@ export function HomePage() {
         Inicio
       </Typography>
       <Grid container spacing={3}>
-        <Grid xs={12} md={6} lg={5}>
+        <Grid size={{ xs: 12, md: 6, lg: 5 }}>
           <Card elevation={2}>
             <CardHeader
               avatar={
@@ -247,7 +247,7 @@ export function HomePage() {
             </CardContent>
           </Card>
         </Grid>
-        <Grid xs={12} md={6} lg={7}>
+        <Grid size={{ xs: 12, md: 6, lg: 7 }}>
           <Card elevation={1} sx={{ height: '100%' }}>
             <CardHeader title="Resumen" subheader="Próximas mejoras del portal" />
             <CardContent>

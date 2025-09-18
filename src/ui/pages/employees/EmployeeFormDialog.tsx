@@ -13,6 +13,8 @@ interface EmployeeFormValues {
   firstName: string;
   lastName: string;
   documentId: string;
+  phone: string;
+  email: string;
   dob: string;
   dateOfHire: string;
   status: 'active' | 'inactive';
@@ -42,6 +44,8 @@ const EMPTY_VALUES: EmployeeFormValues = {
   firstName: '',
   lastName: '',
   documentId: '',
+  phone: '',
+  email: '',
   dob: '',
   dateOfHire: '',
   status: 'active',
@@ -61,6 +65,8 @@ export function EmployeeFormDialog({
         firstName: employee.firstName,
         lastName: employee.lastName,
         documentId: employee.documentId,
+        phone: employee.phone,
+        email: employee.email ?? '',
         dob: toDateInputValue(employee.dob),
         dateOfHire: toDateInputValue(employee.dateOfHire),
         status: employee.status,
@@ -91,6 +97,8 @@ export function EmployeeFormDialog({
         firstName: values.firstName.trim(),
         lastName: values.lastName.trim(),
         documentId: values.documentId.trim(),
+        phone: values.phone.trim(),
+        email: values.email.trim() || undefined,
         dob: toApiDate(values.dob),
         dateOfHire: toApiDate(values.dateOfHire),
         status: values.status,
@@ -131,6 +139,23 @@ export function EmployeeFormDialog({
               onChange={handleInputChange}
               required
               inputProps={{ maxLength: 9 }}
+              fullWidth
+            />
+            <TextField
+              name="phone"
+              label="Teléfono"
+              value={values.phone}
+              onChange={handleInputChange}
+              required
+              inputProps={{ maxLength: 8, inputMode: 'numeric', pattern: '\d*' }}
+              fullWidth
+            />
+            <TextField
+              name="email"
+              label="Correo electrónico"
+              value={values.email}
+              onChange={handleInputChange}
+              type="email"
               fullWidth
             />
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
