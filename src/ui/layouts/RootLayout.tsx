@@ -14,9 +14,13 @@ import Divider from '@mui/material/Divider';
 import Button from '@mui/material/Button';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import MenuIcon from '@mui/icons-material/Menu';
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
+import Tooltip from '@mui/material/Tooltip';
 import { useTheme } from '@mui/material/styles';
 import { useAuth } from '../../auth/useAuth';
 import { navigationItems } from '../navigation/navConfig';
+import { useThemeMode } from '../../theme/ThemeModeProvider';
 
 const drawerWidth = 260;
 
@@ -27,6 +31,7 @@ export function RootLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
+  const { mode, toggleMode } = useThemeMode();
 
   const navItems = useMemo(() => navigationItems, []);
 
@@ -48,6 +53,10 @@ export function RootLayout() {
     await logout();
     navigate('/login');
   }, [logout, navigate]);
+
+  const handleToggleTheme = useCallback(() => {
+    toggleMode();
+  }, [toggleMode]);
 
   if (!isAuthenticated) {
     return <Outlet />;
@@ -131,6 +140,11 @@ export function RootLayout() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Portal administrativo
           </Typography>
+          <Tooltip title={mode === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}>
+            <IconButton color="inherit" onClick={handleToggleTheme} aria-label="alternar modo de color">
+              {mode === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
+            </IconButton>
+          </Tooltip>
         </Toolbar>
       </AppBar>
       <Box
