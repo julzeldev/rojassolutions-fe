@@ -9,6 +9,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import BeachAccessIcon from '@mui/icons-material/BeachAccess';
 import Tooltip from '@mui/material/Tooltip';
 import Avatar from '@mui/material/Avatar';
+import IconButton from '@mui/material/IconButton';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import type { VacationSummary } from '../../../../employees/useEmployee';
 
 interface VacationSummaryCardProps {
@@ -32,7 +34,6 @@ export function VacationSummaryCard({ summary, isLoading, error, onRefresh }: Va
           </Avatar>
         )}
         title="Vacaciones acumuladas"
-        subheader="Cálculo basado en legislación costarricense"
         action={(
           <Button size="small" onClick={handleRefresh} disabled={isLoading}>
             Actualizar
@@ -50,7 +51,14 @@ export function VacationSummaryCard({ summary, isLoading, error, onRefresh }: Va
           <Stack spacing={2}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               <Stack spacing={0.5} flex={1}>
-                <Typography variant="h6">{summary.accruedDays.toFixed(2)} días</Typography>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Typography variant="h6">{summary.accruedDays.toFixed(2)} días</Typography>
+                  <Tooltip title="Se otorgan 12 días hábiles de vacaciones por cada 50 semanas laboradas (12/350 ≈ 0.034 días por día trabajado).">
+                    <IconButton size="small" color="primary">
+                      <InfoOutlinedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
                 <Typography variant="body2" color="text.secondary">
                   Disponibles al {new Date(summary.lastCalculatedAt).toLocaleDateString()}
                 </Typography>
@@ -66,9 +74,6 @@ export function VacationSummaryCard({ summary, isLoading, error, onRefresh }: Va
                 </Tooltip>
               </Stack>
             </Stack>
-            <Typography variant="body2" color="text.secondary">
-              * Se otorgan 12 días hábiles de vacaciones por cada 50 semanas laboradas (12/350 ≈ 0.034 días por día trabajado).
-            </Typography>
           </Stack>
         ) : (
           <Typography color="text.secondary">Aún no hay información de vacaciones disponible.</Typography>

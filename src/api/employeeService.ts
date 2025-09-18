@@ -155,8 +155,9 @@ function normalizeDate(value: MaybeDate): string | null {
 }
 
 function normalizeSalary(entry: SalaryEntryResponse): SalaryEntry {
+  const amount = Number(entry.amountCents);
   return {
-    amountCents: entry.amountCents,
+    amountCents: Number.isFinite(amount) ? amount : 0,
     currency: entry.currency ?? 'CRC',
     schedule: entry.schedule,
     effectiveFrom: normalizeDate(entry.effectiveFrom) ?? '',
