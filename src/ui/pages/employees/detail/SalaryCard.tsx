@@ -21,6 +21,7 @@ interface SalaryCardProps {
   isVisible: boolean;
   onToggleVisibility: () => void;
   onRefresh: () => void;
+  onAddSalary: () => void;
 }
 
 function formatAmount(amountCents: number, visible: boolean): string {
@@ -32,10 +33,14 @@ function formatAmount(amountCents: number, visible: boolean): string {
   }).format(amountCents / 100);
 }
 
-export function SalaryCard({ salary, isLoading, isVisible, onToggleVisibility, onRefresh }: SalaryCardProps) {
+export function SalaryCard({ salary, isLoading, isVisible, onToggleVisibility, onRefresh, onAddSalary }: SalaryCardProps) {
   const formattedAmount = useMemo(() => {
     if (!salary) return isVisible ? 'Sin registro' : '₡••••••••';
-    return formatAmount(salary.amountCents, isVisible);
+    const amount = Number(salary.amountCents);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return isVisible ? 'Sin monto registrado' : '₡••••••••';
+    }
+    return formatAmount(amount, isVisible);
   }, [salary, isVisible]);
 
   const scheduleLabel = useMemo(() => {
@@ -110,12 +115,24 @@ export function SalaryCard({ salary, isLoading, isVisible, onToggleVisibility, o
             <Typography variant="body2" color="text.secondary">
               No se ha registrado un salario para este colaborador.
             </Typography>
-            <Button variant="outlined" onClick={handleRefresh} startIcon={<RefreshIcon />}>
-              Buscar salario
-            </Button>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+              <Button variant="contained" onClick={onAddSalary}>
+                Registrar salario
+              </Button>
+              <Button variant="outlined" onClick={handleRefresh} startIcon={<RefreshIcon />}>
+                Actualizar
+              </Button>
+            </Stack>
           </Stack>
         )}
       </CardContent>
+      {salary && (
+        <Stack direction="row" justifyContent="flex-end" spacing={1} padding={2} pt={0}>
+          <Button variant="outlined" onClick={onAddSalary}>
+            Actualizar salario
+          </Button>
+        </Stack>
+      )}
     </Card>
   );
 }
