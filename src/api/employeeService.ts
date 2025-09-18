@@ -14,6 +14,15 @@ interface SalaryEntryResponse {
   updatedAt?: string | Date;
 }
 
+interface EmployeeDocumentAttachmentResponse {
+  _id?: string;
+  name: string;
+  url: string;
+  category?: string | null;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+}
+
 export interface SalaryEntry {
   amountCents: number;
   currency: 'CRC';
@@ -33,21 +42,42 @@ interface EmployeeResponse {
   dob: string | Date;
   dateOfHire: string | Date;
   documentId: string;
+  phone: string;
+  email?: string | null;
   status: EmployeeStatus;
   userId?: string;
   salaryHistory?: SalaryEntryResponse[];
+  documents?: EmployeeDocumentAttachmentResponse[];
   createdAt?: string | Date;
   updatedAt?: string | Date;
 }
 
 export interface Employee extends Omit<
   EmployeeResponse,
-  '_id' | 'salaryHistory' | 'dob' | 'dateOfHire' | 'createdAt' | 'updatedAt'
+  | '_id'
+  | 'salaryHistory'
+  | 'documents'
+  | 'dob'
+  | 'dateOfHire'
+  | 'createdAt'
+  | 'updatedAt'
 > {
   id: string;
   salaryHistory: SalaryEntry[];
   dob: string;
   dateOfHire: string;
+  phone: string;
+  email?: string;
+  documents: EmployeeDocumentAttachment[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface EmployeeDocumentAttachment {
+  id: string;
+  name: string;
+  url: string;
+  category?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -75,6 +105,8 @@ export interface CreateEmployeePayload {
   dob: string;
   dateOfHire: string;
   documentId: string;
+  phone: string;
+  email?: string;
   status?: EmployeeStatus;
 }
 
@@ -96,6 +128,19 @@ export interface AddSalaryPayload {
   schedule?: SalarySchedule;
   effectiveFrom: string;
   note?: string;
+}
+
+export interface VacationSummary {
+  accruedDays: number;
+  daysWorked: number;
+  nextAccrualDate: string;
+  lastCalculatedAt: string;
+}
+
+export interface AddDocumentPayload {
+  name: string;
+  url: string;
+  category?: string;
 }
 
 function getApiBase(): string {
@@ -122,6 +167,20 @@ function normalizeSalary(entry: SalaryEntryResponse): SalaryEntry {
   };
 }
 
+function normalizeDocument(
+  doc: EmployeeDocumentAttachmentResponse,
+): EmployeeDocumentAttachment {
+  const id = doc._id ?? `${doc.name}-${doc.url}`;
+  return {
+    id,
+    name: doc.name,
+    url: doc.url,
+    category: doc.category ?? undefined,
+    createdAt: normalizeDate(doc.createdAt) ?? undefined,
+    updatedAt: normalizeDate(doc.updatedAt) ?? undefined,
+  };
+}
+
 function normalizeEmployee(raw: EmployeeResponse): Employee {
   const id = raw._id ?? raw.id;
   if (!id) throw new Error('Employee record missing identifier');
@@ -132,9 +191,12 @@ function normalizeEmployee(raw: EmployeeResponse): Employee {
     dob: normalizeDate(raw.dob) ?? '',
     dateOfHire: normalizeDate(raw.dateOfHire) ?? '',
     documentId: raw.documentId,
+    phone: raw.phone,
+    email: raw.email ?? undefined,
     status: raw.status,
     userId: raw.userId,
     salaryHistory: (raw.salaryHistory ?? []).map(normalizeSalary),
+    documents: (raw.documents ?? []).map(normalizeDocument),
     createdAt: normalizeDate(raw.createdAt) ?? undefined,
     updatedAt: normalizeDate(raw.updatedAt) ?? undefined,
   };
@@ -310,6 +372,51 @@ export const employeeService = {
       },
     );
     return normalizeSalary(data);
+  },
+
+  async getVacationSummary(id: string, token: string): Promise<VacationSummary> {
+    const data = await apiRequest<{
+      accruedDays: number;
+      daysWorked: number;
+      nextAccrualDate: string | Date;
+      lastCalculatedAt: string | Date;
+    }>(`/employees/${id}/vacations`, {
+      method: 'GET',
+      token,
+    });
+    return {
+      accruedDays: data.accruedDays,
+      daysWorked: data.daysWorked,
+      nextAccrualDate: normalizeDate(data.nextAccrualDate) ?? '',
+      lastCalculatedAt: normalizeDate(data.lastCalculatedAt) ?? '',
+    };
+  },
+
+  async addDocument(
+    id: string,
+    payload: AddDocumentPayload,
+    token: string,
+  ): Promise<EmployeeDocumentAttachment> {
+    const data = await apiRequest<EmployeeDocumentAttachmentResponse>(
+      `/employees/${id}/documents`,
+      {
+        method: 'POST',
+        token,
+        body: payload,
+      },
+    );
+    return normalizeDocument(data);
+  },
+
+  async removeDocument(
+    employeeId: string,
+    documentId: string,
+    token: string,
+  ): Promise<void> {
+    await apiRequest<void>(`/employees/${employeeId}/documents/${documentId}`, {
+      method: 'DELETE',
+      token,
+    });
   },
 } as const;
 

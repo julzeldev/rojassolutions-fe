@@ -20,6 +20,7 @@ interface EmployeeTableProps {
   isLoading: boolean;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  onSelect: (id: string) => void;
 }
 
 function formatDate(value: string): string {
@@ -27,9 +28,10 @@ function formatDate(value: string): string {
   return new Date(value).toLocaleDateString();
 }
 
-export function EmployeeTable({ employees, isLoading, onEdit, onDelete }: EmployeeTableProps) {
+export function EmployeeTable({ employees, isLoading, onEdit, onDelete, onSelect }: EmployeeTableProps) {
   const handleEditClick = useCallback(
     (event: MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
       const { id } = event.currentTarget.dataset;
       if (id) {
         onEdit(id);
@@ -40,12 +42,23 @@ export function EmployeeTable({ employees, isLoading, onEdit, onDelete }: Employ
 
   const handleDeleteClick = useCallback(
     (event: MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
       const { id } = event.currentTarget.dataset;
       if (id) {
         onDelete(id);
       }
     },
     [onDelete],
+  );
+
+  const handleRowClick = useCallback(
+    (event: MouseEvent<HTMLTableRowElement>) => {
+      const { id } = event.currentTarget.dataset;
+      if (id) {
+        onSelect(id);
+      }
+    },
+    [onSelect],
   );
 
   if (isLoading) {
@@ -71,6 +84,7 @@ export function EmployeeTable({ employees, isLoading, onEdit, onDelete }: Employ
           <TableRow>
             <TableCell>Nombre</TableCell>
             <TableCell>Documento</TableCell>
+            <TableCell>Teléfono</TableCell>
             <TableCell>Estado</TableCell>
             <TableCell>Fecha de ingreso</TableCell>
             <TableCell align="right">Acciones</TableCell>
@@ -78,9 +92,17 @@ export function EmployeeTable({ employees, isLoading, onEdit, onDelete }: Employ
         </TableHead>
         <TableBody>
           {employees.map((employee) => (
-            <TableRow hover key={employee.id} tabIndex={-1}>
+            <TableRow
+              hover
+              key={employee.id}
+              tabIndex={-1}
+              data-id={employee.id}
+              onClick={handleRowClick}
+              sx={{ cursor: 'pointer' }}
+            >
               <TableCell>{`${employee.firstName} ${employee.lastName}`}</TableCell>
               <TableCell>{employee.documentId}</TableCell>
+              <TableCell>{employee.phone}</TableCell>
               <TableCell>{employee.status === 'active' ? 'Activo' : 'Inactivo'}</TableCell>
               <TableCell>{formatDate(employee.dateOfHire)}</TableCell>
               <TableCell align="right">

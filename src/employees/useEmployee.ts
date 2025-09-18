@@ -2,16 +2,17 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../auth/useAuth';
 import {
   employeeService,
+  type AddDocumentPayload,
   type AddSalaryPayload,
-  EmployeeStatus,
-  EmployeeStatus,
   type CreateEmployeePayload,
   type Employee,
+  type EmployeeDocumentAttachment,
   type EmployeeList,
   type EmployeeQueryParams,
   type SalaryEntry,
   type SalaryHistory,
   type UpdateEmployeePayload,
+  type VacationSummary,
 } from '../api/employeeService';
 
 function getErrorMessage(error: unknown): string {
@@ -20,7 +21,7 @@ function getErrorMessage(error: unknown): string {
   return 'Unexpected error';
 }
 
-function cloneParams<T extends Record<string, unknown> | undefined>(params: T): T {
+function cloneParams<T extends object | undefined>(params: T): T {
   if (!params) return params;
   return { ...params } as T;
 }
@@ -64,6 +65,19 @@ export interface UseEmployeeResult {
   refreshSalaryHistory: () => Promise<SalaryHistory> | null;
   addSalary: (id: string, payload: AddSalaryPayload) => Promise<SalaryEntry>;
   clearSalaryState: () => void;
+
+  vacationSummary: VacationSummary | null;
+  isLoadingVacation: boolean;
+  vacationError: string | null;
+  fetchVacationSummary: (id: string) => Promise<VacationSummary>;
+
+  isMutatingDocuments: boolean;
+  documentError: string | null;
+  addDocument: (
+    id: string,
+    payload: AddDocumentPayload,
+  ) => Promise<EmployeeDocumentAttachment>;
+  removeDocument: (employeeId: string, documentId: string) => Promise<void>;
 }
 
 export function useEmployee(): UseEmployeeResult {
@@ -89,6 +103,15 @@ export function useEmployee(): UseEmployeeResult {
   const [isLoadingSalaryHistory, setIsLoadingSalaryHistory] =
     useState<boolean>(false);
   const [salaryError, setSalaryError] = useState<string | null>(null);
+
+  const [vacationSummary, setVacationSummary] =
+    useState<VacationSummary | null>(null);
+  const [isLoadingVacation, setIsLoadingVacation] = useState<boolean>(false);
+  const [vacationError, setVacationError] = useState<string | null>(null);
+
+  const [isMutatingDocuments, setIsMutatingDocuments] =
+    useState<boolean>(false);
+  const [documentError, setDocumentError] = useState<string | null>(null);
 
   const lastListParamsRef = useRef<EmployeeQueryParams | undefined>(undefined);
   const salaryHistoryParamsRef = useRef<SalaryHistoryParamsSnapshot | null>(
@@ -133,6 +156,7 @@ export function useEmployee(): UseEmployeeResult {
       const token = requireToken();
       setIsLoadingEmployee(true);
       setEmployeeError(null);
+      setDocumentError(null);
       try {
         const data = await employeeService.getEmployee(id, token);
         setEmployee(data);
@@ -151,6 +175,8 @@ export function useEmployee(): UseEmployeeResult {
   const clearSelectedEmployee = useCallback(() => {
     setEmployee(null);
     setEmployeeError(null);
+    setVacationSummary(null);
+    setDocumentError(null);
   }, []);
 
   const createEmployee = useCallback(
@@ -304,6 +330,82 @@ export function useEmployee(): UseEmployeeResult {
     salaryHistoryParamsRef.current = null;
   }, []);
 
+  const fetchVacationSummary = useCallback(
+    async (id: string): Promise<VacationSummary> => {
+      const token = requireToken();
+      setIsLoadingVacation(true);
+      setVacationError(null);
+      try {
+        const summary = await employeeService.getVacationSummary(id, token);
+        setVacationSummary(summary);
+        return summary;
+      } catch (error) {
+        const message = getErrorMessage(error);
+        setVacationError(message);
+        throw error;
+      } finally {
+        setIsLoadingVacation(false);
+      }
+    },
+    [requireToken],
+  );
+
+  const addDocument = useCallback(
+    async (
+      id: string,
+      payload: AddDocumentPayload,
+    ): Promise<EmployeeDocumentAttachment> => {
+      const token = requireToken();
+      setIsMutatingDocuments(true);
+      setDocumentError(null);
+      try {
+        const attachment = await employeeService.addDocument(id, payload, token);
+        setEmployee((prev) =>
+          prev && prev.id === id
+            ? {
+                ...prev,
+                documents: [...prev.documents, attachment],
+              }
+            : prev,
+        );
+        return attachment;
+      } catch (error) {
+        const message = getErrorMessage(error);
+        setDocumentError(message);
+        throw error;
+      } finally {
+        setIsMutatingDocuments(false);
+      }
+    },
+    [requireToken],
+  );
+
+  const removeDocument = useCallback(
+    async (employeeId: string, documentId: string): Promise<void> => {
+      const token = requireToken();
+      setIsMutatingDocuments(true);
+      setDocumentError(null);
+      try {
+        await employeeService.removeDocument(employeeId, documentId, token);
+        setEmployee((prev) =>
+          prev && prev.id === employeeId
+            ? {
+                ...prev,
+                documents: prev.documents.filter((doc) => doc.id !== documentId),
+              }
+            : prev,
+        );
+      } catch (error) {
+        const message = getErrorMessage(error);
+        setDocumentError(message);
+        throw error;
+      } finally {
+        setIsMutatingDocuments(false);
+      }
+    },
+    [requireToken],
+  );
+
   return useMemo<UseEmployeeResult>(
     () => ({
       employees,
@@ -333,6 +435,14 @@ export function useEmployee(): UseEmployeeResult {
       refreshSalaryHistory,
       addSalary,
       clearSalaryState,
+      vacationSummary,
+      isLoadingVacation,
+      vacationError,
+      fetchVacationSummary,
+      isMutatingDocuments,
+      documentError,
+      addDocument,
+      removeDocument,
     }),
     [
       employees,
@@ -362,12 +472,21 @@ export function useEmployee(): UseEmployeeResult {
       refreshSalaryHistory,
       addSalary,
       clearSalaryState,
+      vacationSummary,
+      isLoadingVacation,
+      vacationError,
+      fetchVacationSummary,
+      isMutatingDocuments,
+      documentError,
+      addDocument,
+      removeDocument,
     ],
   );
 }
 
 export type {
   Employee,
+  EmployeeDocumentAttachment,
   EmployeeQueryParams,
   CreateEmployeePayload,
   UpdateEmployeePayload,
@@ -375,4 +494,6 @@ export type {
   SalaryHistory,
   AddSalaryPayload,
   EmployeeStatus,
+  VacationSummary,
+  AddDocumentPayload,
 } from '../api/employeeService';

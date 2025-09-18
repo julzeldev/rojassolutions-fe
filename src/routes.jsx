@@ -9,6 +9,7 @@ import { LoginPage } from './ui/pages/unauthorized/LoginPage.jsx'
 import { ProtectedRoute } from './components/ProtectedRoute.jsx'
 import { SecuritySettings } from './ui/pages/settings/SecuritySettings.jsx'
 import { EmployeesPage } from './ui/pages/employees/EmployeesPage.tsx'
+import { EmployeeDetailPage } from './ui/pages/employees/detail/EmployeeDetailPage.tsx'
 
 export const router = createBrowserRouter([
   {
@@ -29,6 +30,11 @@ export const router = createBrowserRouter([
       { path: 'empleados', element: (
         <ProtectedRoute>
           <EmployeesPage />
+        </ProtectedRoute>
+      ) },
+      { path: 'empleados/:id', element: (
+        <ProtectedRoute>
+          <EmployeeDetailPage />
         </ProtectedRoute>
       ) },
       { path: 'settings/security', element: (
