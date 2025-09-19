@@ -1,11 +1,11 @@
-export type EmployeeStatus = 'active' | 'inactive';
-export type SalarySchedule = 'monthly' | 'biweekly' | 'weekly' | 'hourly';
+export type EmployeeStatus = "active" | "inactive";
+export type SalarySchedule = "monthly" | "biweekly" | "weekly" | "hourly";
 
 type MaybeDate = string | Date | null | undefined;
 
 interface SalaryEntryResponse {
   amountCents: number;
-  currency?: 'CRC';
+  currency?: "CRC";
   schedule?: SalarySchedule;
   effectiveFrom: string | Date;
   effectiveTo?: string | Date | null;
@@ -25,7 +25,7 @@ interface EmployeeDocumentAttachmentResponse {
 
 export interface SalaryEntry {
   amountCents: number;
-  currency: 'CRC';
+  currency: "CRC";
   schedule?: SalarySchedule;
   effectiveFrom: string;
   effectiveTo: string | null;
@@ -52,16 +52,17 @@ interface EmployeeResponse {
   updatedAt?: string | Date;
 }
 
-export interface Employee extends Omit<
-  EmployeeResponse,
-  | '_id'
-  | 'salaryHistory'
-  | 'documents'
-  | 'dob'
-  | 'dateOfHire'
-  | 'createdAt'
-  | 'updatedAt'
-> {
+export interface Employee
+  extends Omit<
+    EmployeeResponse,
+    | "_id"
+    | "salaryHistory"
+    | "documents"
+    | "dob"
+    | "dateOfHire"
+    | "createdAt"
+    | "updatedAt"
+  > {
   id: string;
   salaryHistory: SalaryEntry[];
   dob: string;
@@ -124,7 +125,7 @@ export interface SalaryHistory {
 
 export interface AddSalaryPayload {
   amountCents: number;
-  currency?: 'CRC';
+  currency?: "CRC";
   schedule?: SalarySchedule;
   effectiveFrom: string;
   note?: string;
@@ -145,7 +146,7 @@ export interface AddDocumentPayload {
 
 function getApiBase(): string {
   const base = (import.meta as any)?.env?.VITE_API_BASE as string | undefined; // eslint-disable-line @typescript-eslint/no-explicit-any
-  return base || 'http://localhost:5001';
+  return base || "http://localhost:5001";
 }
 
 function normalizeDate(value: MaybeDate): string | null {
@@ -158,9 +159,9 @@ function normalizeSalary(entry: SalaryEntryResponse): SalaryEntry {
   const amount = Number(entry.amountCents);
   return {
     amountCents: Number.isFinite(amount) ? amount : 0,
-    currency: entry.currency ?? 'CRC',
+    currency: entry.currency ?? "CRC",
     schedule: entry.schedule,
-    effectiveFrom: normalizeDate(entry.effectiveFrom) ?? '',
+    effectiveFrom: normalizeDate(entry.effectiveFrom) ?? "",
     effectiveTo: normalizeDate(entry.effectiveTo),
     note: entry.note,
     createdAt: normalizeDate(entry.createdAt) ?? undefined,
@@ -169,7 +170,7 @@ function normalizeSalary(entry: SalaryEntryResponse): SalaryEntry {
 }
 
 function normalizeDocument(
-  doc: EmployeeDocumentAttachmentResponse,
+  doc: EmployeeDocumentAttachmentResponse
 ): EmployeeDocumentAttachment {
   const id = doc._id ?? `${doc.name}-${doc.url}`;
   return {
@@ -184,13 +185,13 @@ function normalizeDocument(
 
 function normalizeEmployee(raw: EmployeeResponse): Employee {
   const id = raw._id ?? raw.id;
-  if (!id) throw new Error('Employee record missing identifier');
+  if (!id) throw new Error("Employee record missing identifier");
   return {
     id,
     firstName: raw.firstName,
     lastName: raw.lastName,
-    dob: normalizeDate(raw.dob) ?? '',
-    dateOfHire: normalizeDate(raw.dateOfHire) ?? '',
+    dob: normalizeDate(raw.dob) ?? "",
+    dateOfHire: normalizeDate(raw.dateOfHire) ?? "",
     documentId: raw.documentId,
     phone: raw.phone,
     email: raw.email ?? undefined,
@@ -204,18 +205,21 @@ function normalizeEmployee(raw: EmployeeResponse): Employee {
 }
 
 interface ApiRequestOptions {
-  method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
+  method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
   token: string;
   body?: unknown;
-  query?: Record<string, string | number | boolean | null | undefined> | EmployeeQueryParams;
+  query?:
+    | Record<string, string | number | boolean | null | undefined>
+    | EmployeeQueryParams;
 }
 
 async function apiRequest<T>(
   path: string,
-  { method, token, body, query }: ApiRequestOptions,
+  { method, token, body, query }: ApiRequestOptions
 ): Promise<T> {
-  const base = getApiBase();
-  const url = new URL(path, base);
+  const base = getApiBase().replace(/\/$/, ""); // ensure no trailing slash
+  const cleanPath = path.replace(/^\//, ""); // remove leading slash
+  const url = new URL(`${base}/${cleanPath}`);
 
   if (query) {
     Object.entries(query).forEach(([key, value]) => {
@@ -224,7 +228,7 @@ async function apiRequest<T>(
     });
   }
 
-  const finalMethod = method ?? (body !== undefined ? 'POST' : 'GET');
+  const finalMethod = method ?? (body !== undefined ? "POST" : "GET");
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
   };
@@ -233,18 +237,18 @@ async function apiRequest<T>(
     headers,
   };
   if (body !== undefined) {
-    headers['Content-Type'] = 'application/json';
+    headers["Content-Type"] = "application/json";
     init.body = JSON.stringify(body);
   }
 
   const response = await fetch(url.toString(), init);
   if (!response.ok) {
-    let detail = '';
+    let detail = "";
     try {
       const json = await response.clone().json();
-      if (json && typeof json === 'object' && 'message' in json) {
+      if (json && typeof json === "object" && "message" in json) {
         const { message } = json as { message: string | string[] };
-        detail = Array.isArray(message) ? message.join(', ') : String(message);
+        detail = Array.isArray(message) ? message.join(", ") : String(message);
       } else {
         detail = JSON.stringify(json);
       }
@@ -252,7 +256,7 @@ async function apiRequest<T>(
       try {
         detail = await response.text();
       } catch {
-        detail = '';
+        detail = "";
       }
     }
     const errorMessage = detail
@@ -265,8 +269,8 @@ async function apiRequest<T>(
     return undefined as T;
   }
 
-  const contentType = response.headers.get('content-type') ?? '';
-  if (contentType.includes('application/json')) {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (contentType.includes("application/json")) {
     return (await response.json()) as T;
   }
 
@@ -276,10 +280,10 @@ async function apiRequest<T>(
 export const employeeService = {
   async listEmployees(
     params: EmployeeQueryParams | undefined,
-    token: string,
+    token: string
   ): Promise<EmployeeList> {
-    const data = await apiRequest<EmployeeListResponse>('/employees', {
-      method: 'GET',
+    const data = await apiRequest<EmployeeListResponse>("/employees", {
+      method: "GET",
       token,
       query: params,
     });
@@ -291,7 +295,7 @@ export const employeeService = {
 
   async getEmployee(id: string, token: string): Promise<Employee> {
     const data = await apiRequest<EmployeeResponse>(`/employees/${id}`, {
-      method: 'GET',
+      method: "GET",
       token,
     });
     return normalizeEmployee(data);
@@ -299,10 +303,10 @@ export const employeeService = {
 
   async createEmployee(
     payload: CreateEmployeePayload,
-    token: string,
+    token: string
   ): Promise<Employee> {
-    const data = await apiRequest<EmployeeResponse>('/employees', {
-      method: 'POST',
+    const data = await apiRequest<EmployeeResponse>("/employees", {
+      method: "POST",
       token,
       body: payload,
     });
@@ -312,10 +316,10 @@ export const employeeService = {
   async updateEmployee(
     id: string,
     payload: UpdateEmployeePayload,
-    token: string,
+    token: string
   ): Promise<Employee> {
     const data = await apiRequest<EmployeeResponse>(`/employees/${id}`, {
-      method: 'PATCH',
+      method: "PATCH",
       token,
       body: payload,
     });
@@ -324,18 +328,21 @@ export const employeeService = {
 
   async deleteEmployee(id: string, token: string): Promise<void> {
     await apiRequest<void>(`/employees/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
       token,
     });
   },
 
-  async getCurrentSalary(id: string, token: string): Promise<SalaryEntry | null> {
+  async getCurrentSalary(
+    id: string,
+    token: string
+  ): Promise<SalaryEntry | null> {
     const data = await apiRequest<SalaryEntryResponse | null>(
       `/employees/${id}/salary`,
       {
-        method: 'GET',
+        method: "GET",
         token,
-      },
+      }
     );
     return data ? normalizeSalary(data) : null;
   },
@@ -343,15 +350,15 @@ export const employeeService = {
   async getSalaryHistory(
     id: string,
     token: string,
-    params?: { limit?: number; offset?: number },
+    params?: { limit?: number; offset?: number }
   ): Promise<SalaryHistory> {
     const data = await apiRequest<SalaryHistoryResponse>(
       `/employees/${id}/salaries`,
       {
-        method: 'GET',
+        method: "GET",
         token,
         query: params,
-      },
+      }
     );
     return {
       items: data.items.map(normalizeSalary),
@@ -362,49 +369,52 @@ export const employeeService = {
   async addSalary(
     id: string,
     payload: AddSalaryPayload,
-    token: string,
+    token: string
   ): Promise<SalaryEntry> {
     const data = await apiRequest<SalaryEntryResponse>(
       `/employees/${id}/salaries`,
       {
-        method: 'POST',
+        method: "POST",
         token,
         body: payload,
-      },
+      }
     );
     return normalizeSalary(data);
   },
 
-  async getVacationSummary(id: string, token: string): Promise<VacationSummary> {
+  async getVacationSummary(
+    id: string,
+    token: string
+  ): Promise<VacationSummary> {
     const data = await apiRequest<{
       accruedDays: number;
       daysWorked: number;
       nextAccrualDate: string | Date;
       lastCalculatedAt: string | Date;
     }>(`/employees/${id}/vacations`, {
-      method: 'GET',
+      method: "GET",
       token,
     });
     return {
       accruedDays: data.accruedDays,
       daysWorked: data.daysWorked,
-      nextAccrualDate: normalizeDate(data.nextAccrualDate) ?? '',
-      lastCalculatedAt: normalizeDate(data.lastCalculatedAt) ?? '',
+      nextAccrualDate: normalizeDate(data.nextAccrualDate) ?? "",
+      lastCalculatedAt: normalizeDate(data.lastCalculatedAt) ?? "",
     };
   },
 
   async addDocument(
     id: string,
     payload: AddDocumentPayload,
-    token: string,
+    token: string
   ): Promise<EmployeeDocumentAttachment> {
     const data = await apiRequest<EmployeeDocumentAttachmentResponse>(
       `/employees/${id}/documents`,
       {
-        method: 'POST',
+        method: "POST",
         token,
         body: payload,
-      },
+      }
     );
     return normalizeDocument(data);
   },
@@ -412,10 +422,10 @@ export const employeeService = {
   async removeDocument(
     employeeId: string,
     documentId: string,
-    token: string,
+    token: string
   ): Promise<void> {
     await apiRequest<void>(`/employees/${employeeId}/documents/${documentId}`, {
-      method: 'DELETE',
+      method: "DELETE",
       token,
     });
   },
