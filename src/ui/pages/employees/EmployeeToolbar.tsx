@@ -49,14 +49,20 @@ export function EmployeeToolbar({
   }, [onRefresh]);
 
   return (
-    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
+    <Stack
+      direction={{ xs: 'column', sm: 'row' }}
+      spacing={2}
+      alignItems={{ xs: 'stretch', sm: 'flex-end' }}
+      flexWrap={{ sm: 'wrap' }}
+    >
       <TextField
         label="Buscar"
         value={query}
         onChange={handleQueryChange}
         variant="outlined"
         size="small"
-        sx={{ minWidth: 220 }}
+        fullWidth
+        sx={{ minWidth: { sm: 220 } }}
       />
       <TextField
         select
@@ -65,18 +71,24 @@ export function EmployeeToolbar({
         onChange={handleStatusChange}
         variant="outlined"
         size="small"
-        sx={{ minWidth: 160 }}
+        fullWidth
+        sx={{ minWidth: { sm: 160 }, maxWidth: { xs: '100%', sm: 220 } }}
       >
         <MenuItem value="">Todos</MenuItem>
         <MenuItem value="active">Activo</MenuItem>
         <MenuItem value="inactive">Inactivo</MenuItem>
       </TextField>
-      <Stack direction="row" spacing={1} marginLeft="auto">
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={1}
+        sx={{ width: { xs: '100%', sm: 'auto' }, marginLeft: { xs: 0, sm: 'auto' } }}
+      >
         <Button
           onClick={handleRefreshClick}
           startIcon={<RefreshIcon />}
           variant="outlined"
           disabled={isRefreshing}
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
         >
           Recargar
         </Button>
@@ -84,6 +96,7 @@ export function EmployeeToolbar({
           onClick={handleCreateClick}
           startIcon={<AddIcon />}
           variant="contained"
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
         >
           Nuevo empleado
         </Button>
