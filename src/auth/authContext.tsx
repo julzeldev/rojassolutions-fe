@@ -7,11 +7,17 @@ import React, {
   ReactNode,
 } from "react";
 import { AuthContext } from "./useAuth";
-import { authService, LoginResponse, AuthTokensResponse } from "./authService";
+import {
+  authService,
+  LoginResponse,
+  AuthTokensResponse,
+} from "./authService";
 
 const ACCESS_TOKEN_KEY = "rs.accessToken";
 const REFRESH_TOKEN_KEY = "rs.refreshToken";
 const ROLE_KEY = "rs.userRole";
+const PENDING_MFA_KEY = "rs.pendingMfa";
+const PRE_AUTH_TOKEN_KEY = "rs.preAuthToken";
 const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000;
 const TOKEN_REFRESH_MARGIN_MS = 60 * 1000;
 const MIN_REFRESH_DELAY_MS = 5 * 1000;
@@ -40,12 +46,34 @@ function decodeJwt(token: string | null | undefined): DecodedJwtPayload | null {
   }
 }
 
+export type LoginResult =
+  | { status: "authenticated" }
+  | { status: "mfa-required"; userId: string }
+  | { status: "mfa-setup"; preAuthToken: string };
+
+interface PendingMfaChallenge {
+  userId: string;
+  email: string;
+}
+
+interface PendingSetupChallenge {
+  preAuthToken: string;
+  email: string;
+}
+
 export interface AuthContextValue {
   isAuthenticated: boolean;
   userRole: string | null;
   accessToken: string | null;
-  login: (email: string, password: string) => Promise<{ mfaRequired: boolean }>;
-  verifyMfa: (code: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<LoginResult>;
+  completeTotpLogin: (code: string) => Promise<boolean>;
+  completeRecoveryLogin: (email: string, code: string) => Promise<boolean>;
+  cancelMfaChallenge: () => void;
+  pendingMfa: PendingMfaChallenge | null;
+  preAuthToken: string | null;
+  clearPreAuthToken: () => void;
+  pendingSetup: PendingSetupChallenge | null;
+  finalizeTotpSetup: (code: string) => Promise<string[]>;
   logout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
@@ -66,7 +94,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
     Boolean(localStorage.getItem(ACCESS_TOKEN_KEY))
   );
 
-  const pendingUserIdRef = useRef<string | null>(null);
+  const [pendingMfa, setPendingMfa] = useState<PendingMfaChallenge | null>(() => {
+    try {
+      const raw = sessionStorage.getItem(PENDING_MFA_KEY);
+      return raw ? (JSON.parse(raw) as PendingMfaChallenge) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [pendingSetup, setPendingSetup] = useState<PendingSetupChallenge | null>(() => {
+    try {
+      const raw = sessionStorage.getItem(PRE_AUTH_TOKEN_KEY);
+      return raw ? (JSON.parse(raw) as PendingSetupChallenge) : null;
+    } catch {
+      return null;
+    }
+  });
   const logoutTimerRef = useRef<number | null>(null);
   const inactivityTimerRef = useRef<number | null>(null);
   const refreshTimerRef = useRef<number | null>(null);
@@ -102,6 +146,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsAuthenticated(false);
     setUserRole(null);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
+    setPendingMfa(null);
+    setPendingSetup(null);
+    sessionStorage.removeItem(PENDING_MFA_KEY);
+    sessionStorage.removeItem(PRE_AUTH_TOKEN_KEY);
   }, [clearInactivityTimer, clearLogoutTimer, clearRefreshTimer]);
 
   useEffect(() => {
@@ -114,6 +162,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     else localStorage.removeItem(ROLE_KEY);
   }, [userRole]);
 
+  useEffect(() => {
+    if (pendingMfa) sessionStorage.setItem(PENDING_MFA_KEY, JSON.stringify(pendingMfa));
+    else sessionStorage.removeItem(PENDING_MFA_KEY);
+  }, [pendingMfa]);
+
+  useEffect(() => {
+    if (pendingSetup) sessionStorage.setItem(PRE_AUTH_TOKEN_KEY, JSON.stringify(pendingSetup));
+    else sessionStorage.removeItem(PRE_AUTH_TOKEN_KEY);
+  }, [pendingSetup]);
+
   const applyAuthTokens = useCallback(
     (token: string | null, refreshToken?: string | null) => {
       if (!token) {
@@ -123,6 +181,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       setAccessToken(token);
       setIsAuthenticated(true);
+      setPendingMfa(null);
+      setPendingSetup(null);
 
       if (typeof refreshToken !== "undefined") {
         if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
@@ -133,38 +193,86 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 
   const login = useCallback(
-    async (
-      email: string,
-      password: string
-    ): Promise<{ mfaRequired: boolean }> => {
-      const data: LoginResponse = await authService.login(email, password);
-      if ("mfaRequired" in data && data.mfaRequired) {
-        pendingUserIdRef.current = data.userId;
-        return { mfaRequired: true };
+    async (email: string, password: string): Promise<LoginResult> => {
+      const trimmedEmail = email.trim();
+      const data: LoginResponse = await authService.login(trimmedEmail, password);
+
+      if ('requiresMfa' in data && data.requiresMfa) {
+        setPendingMfa({ userId: data.userId, email: trimmedEmail });
+        setPendingSetup(null);
+        return { status: 'mfa-required', userId: data.userId };
       }
+
+      if ('requiresMfaSetup' in data && data.requiresMfaSetup) {
+        setPendingMfa(null);
+        setPendingSetup({ preAuthToken: data.preAuthToken, email: trimmedEmail });
+        return { status: 'mfa-setup', preAuthToken: data.preAuthToken };
+      }
+
       const tokens = data as AuthTokensResponse;
       if (tokens.accessToken) {
         applyAuthTokens(tokens.accessToken, tokens.refreshToken);
-        return { mfaRequired: false };
+        return { status: 'authenticated' };
       }
-      throw new Error("Unexpected login response shape");
+      throw new Error('Unexpected login response shape');
     },
     [applyAuthTokens]
   );
 
-  const verifyMfa = useCallback(
+  const cancelMfaChallenge = useCallback(() => {
+    setPendingMfa(null);
+    sessionStorage.removeItem(PENDING_MFA_KEY);
+  }, []);
+
+  const completeTotpLogin = useCallback(
     async (code: string): Promise<boolean> => {
-      if (!pendingUserIdRef.current)
-        throw new Error("No MFA challenge in progress");
-      const data = await authService.verifyMfa(pendingUserIdRef.current, code);
-      if ("accessToken" in data) {
-        applyAuthTokens(data.accessToken, data.refreshToken);
-        pendingUserIdRef.current = null;
+      if (!pendingMfa) {
+        throw new Error('No MFA challenge in progress');
+      }
+      const response = await authService.verifyTotpLogin(pendingMfa.userId, code.trim());
+      if (response?.accessToken) {
+        applyAuthTokens(response.accessToken, response.refreshToken);
+        setPendingMfa(null);
         return true;
       }
-      throw new Error("Unexpected MFA response for login flow");
+      throw new Error('Unexpected MFA response for login flow');
+    },
+    [applyAuthTokens, pendingMfa]
+  );
+
+  const completeRecoveryLogin = useCallback(
+    async (email: string, recoveryCode: string): Promise<boolean> => {
+      const response = await authService.recoveryLogin(email.trim(), recoveryCode.trim());
+      if (response?.accessToken) {
+        applyAuthTokens(response.accessToken, response.refreshToken);
+        setPendingMfa(null);
+        return true;
+      }
+      throw new Error('Unexpected recovery login response');
     },
     [applyAuthTokens]
+  );
+
+  const clearPreAuthToken = useCallback(() => {
+    setPendingSetup(null);
+    sessionStorage.removeItem(PRE_AUTH_TOKEN_KEY);
+  }, []);
+
+  const finalizeTotpSetup = useCallback(
+    async (code: string): Promise<string[]> => {
+      if (!pendingSetup?.preAuthToken) {
+        throw new Error('No MFA setup in progress');
+      }
+      const response = await authService.verifyTotpSetup(
+        pendingSetup.preAuthToken,
+        code.trim(),
+      );
+      applyAuthTokens(response.accessToken, response.refreshToken);
+      setPendingSetup(null);
+      sessionStorage.removeItem(PRE_AUTH_TOKEN_KEY);
+      return response.recoveryCodes ?? [];
+    },
+    [applyAuthTokens, pendingSetup],
   );
 
   const logout = useCallback(async (): Promise<void> => {
@@ -280,7 +388,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       userRole,
       accessToken,
       login,
-      verifyMfa,
+      completeTotpLogin,
+      completeRecoveryLogin,
+      cancelMfaChallenge,
+      pendingMfa,
+      preAuthToken: pendingSetup?.preAuthToken ?? null,
+      clearPreAuthToken,
+      pendingSetup,
+      finalizeTotpSetup,
       logout,
       forgotPassword,
       resetPassword,
@@ -290,7 +405,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       userRole,
       accessToken,
       login,
-      verifyMfa,
+      completeTotpLogin,
+      completeRecoveryLogin,
+      cancelMfaChallenge,
+      pendingMfa,
+      pendingSetup,
+      clearPreAuthToken,
+      finalizeTotpSetup,
       logout,
       forgotPassword,
       resetPassword,
