@@ -1,26 +1,32 @@
 import React, { useState, useEffect, useCallback, FormEvent } from 'react'
-import { useNavigate, useLocation, NavLink } from 'react-router'
+import { useNavigate, useLocation, Link as RouterLink } from 'react-router'
 import { useAuth } from '../../../auth/useAuth'
-import { Avatar, Box, Button, Container, Typography, Alert, CircularProgress, Stack, Divider, Paper } from '@mui/material'
+import {
+  Avatar,
+  Box,
+  Button,
+  Container,
+  Typography,
+  Alert,
+  CircularProgress,
+  Stack,
+  Divider,
+  Paper,
+  Link,
+} from '@mui/material'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import { FormTextField, PasswordField } from '../../../components/form'
 
-// Mobile-first responsive login (email + password). If backend indicates MFA required,
-// display MFA field and verify via verifyMfa().
 export function LoginPage() {
-  const { login, verifyMfa, isAuthenticated } = useAuth()
+  const { login, isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const location = useLocation() as ReturnType<typeof useLocation> & { state?: { from?: string } }
 
-  const [email, setEmail] = useState<string>('')
-  const [password, setPassword] = useState<string>('')
-  const [mfaCode, setMfaCode] = useState<string>('')
-  const [awaitingMfa, setAwaitingMfa] = useState<boolean>(false)
-  const [submitting, setSubmitting] = useState<boolean>(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [info, setInfo] = useState<string | null>(null)
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
       const from = location.state?.from || '/'
@@ -28,122 +34,100 @@ export function LoginPage() {
     }
   }, [isAuthenticated, location.state, navigate])
 
-  const handleLogin = useCallback(async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (awaitingMfa || submitting) return
-    setError(null)
-    setInfo(null)
-    setSubmitting(true)
-    try {
-      const res = await login(email.trim(), password)
-      if (res?.mfaRequired) {
-        setAwaitingMfa(true)
-        setInfo('Se requiere autenticacion multifactor. Ingresa tu codigo.')
-      } else {
-        navigate('/')
+  const handleLogin = useCallback(
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      if (submitting) return
+      setError(null)
+      setSubmitting(true)
+      try {
+        const result = await login(email.trim(), password)
+        if (result.status === 'authenticated') {
+          const from = location.state?.from || '/'
+          navigate(from, { replace: true })
+        } else if (result.status === 'mfa-required') {
+          navigate('/mfa/verify', { replace: true })
+        } else if (result.status === 'mfa-setup') {
+          navigate('/mfa/setup-intro', { replace: true })
+        }
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'No se pudo iniciar sesión'
+        setError(message)
+      } finally {
+        setSubmitting(false)
       }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error al iniciar sesion'
-      setError(msg)
-    } finally {
-      setSubmitting(false)
-    }
-  }, [awaitingMfa, email, login, navigate, password, submitting])
+    },
+    [email, password, submitting, login, navigate, location.state],
+  )
 
-  const handleVerifyMfa = useCallback(async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!awaitingMfa || submitting) return
-    setError(null)
-    setSubmitting(true)
-    try {
-      await verifyMfa(mfaCode.trim())
-      navigate('/')
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'La verificacion de MFA fallo'
-      setError(msg)
-    } finally {
-      setSubmitting(false)
-    }
-  }, [awaitingMfa, mfaCode, navigate, submitting, verifyMfa])
+  const isFormValid = email.trim().length > 0 && password.length > 0
 
   return (
-    <Container component="main" maxWidth="xs" sx={{ display: 'flex', alignItems: 'center', minHeight: '100dvh' }}>
+    <Container
+      component="main"
+      maxWidth="xs"
+      sx={{ display: 'flex', alignItems: 'center', minHeight: '100dvh' }}
+    >
       <Paper elevation={3} sx={{ width: '100%', p: { xs: 3, sm: 4 } }}>
-        <Stack spacing={2} component="form" noValidate onSubmit={awaitingMfa ? handleVerifyMfa : handleLogin}>
+        <Stack spacing={2} component="form" noValidate onSubmit={handleLogin}>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
             <Avatar sx={{ bgcolor: 'primary.main' }}>
               <LockOutlinedIcon />
             </Avatar>
             <Typography component="h1" variant="h5">
-              {awaitingMfa ? 'Ingresa el codigo MFA' : 'Inicia sesion'}
+              Inicia sesión
             </Typography>
           </Box>
-          {error && <Alert role="alert" severity="error" onClose={() => setError(null)}>{error}</Alert>}
-          {info && <Alert role="status" severity="info" onClose={() => setInfo(null)}>{info}</Alert>}
-
-          {!awaitingMfa && (
-            <>
-              <FormTextField
-                label="Correo electronico"
-                name="email"
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(val) => setEmail(val)}
-                disabled={submitting}
-                inputProps={{ 'data-testid': 'email-input' }}
-              />
-              <PasswordField
-                label="Contraseña"
-                name="password"
-                required
-                value={password}
-                onChange={(val) => setPassword(val)}
-                disabled={submitting}
-                inputProps={{ 'data-testid': 'password-input' }}
-              />
-            </>
+          {error && (
+            <Alert role="alert" severity="error" onClose={() => setError(null)}>
+              {error}
+            </Alert>
           )}
-
-          {awaitingMfa && (
-            <FormTextField
-              label="Codigo MFA"
-              name="mfa"
-              type="text"
-              required
-              value={mfaCode}
-              onChange={(val) => setMfaCode(val)}
-              autoFocus
-              disabled={submitting}
-              autoComplete="one-time-code"
-              inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', 'data-testid': 'mfa-input', maxLength: 6 }}
-              helperText="Revisa tu app de autenticacion o tu correo electronico para obtener el codigo"
-            />
-          )}
+          <FormTextField
+            label="Correo electrónico"
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={setEmail}
+            disabled={submitting}
+            inputProps={{ 'data-testid': 'email-input' }}
+          />
+          <PasswordField
+            label="Contraseña"
+            name="password"
+            required
+            value={password}
+            onChange={setPassword}
+            disabled={submitting}
+            inputProps={{ 'data-testid': 'password-input' }}
+          />
 
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            disabled={submitting || (!awaitingMfa && (!email || !password)) || (awaitingMfa && mfaCode.length !== 6)}
+            disabled={submitting || !isFormValid}
             startIcon={submitting ? <CircularProgress size={18} /> : null}
           >
-            {awaitingMfa ? 'Verificar codigo' : 'Iniciar sesion'}
+            Continuar
           </Button>
-          {awaitingMfa && (
-            <Button
-              variant="text"
-              size="small"
-              onClick={() => { if (!submitting) { setAwaitingMfa(false); setMfaCode('') } }}
-              disabled={submitting}
+
+          <Box sx={{ textAlign: 'center' }}>
+            <Link
+              component={RouterLink}
+              to="/forgot-password"
+              variant="body2"
+              underline="hover"
             >
-              Volver al inicio de sesion
-            </Button>
-          )}
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </Box>
+
           <Divider />
           <Typography variant="caption" color="text.secondary" textAlign="center">
-            Portal de acceso seguro
+            Si tu cuenta requiere verificación MFA, te guiaremos para completarla en el siguiente paso.
           </Typography>
         </Stack>
       </Paper>

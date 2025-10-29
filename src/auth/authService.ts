@@ -3,8 +3,13 @@
 
 // ---------- Response Type Definitions ----------
 export interface LoginMfaRequiredResponse {
-  mfaRequired: true;
+  requiresMfa: true;
   userId: string;
+}
+
+export interface LoginMfaSetupResponse {
+  requiresMfaSetup: true;
+  preAuthToken: string;
 }
 
 export interface AuthTokensResponse {
@@ -12,7 +17,10 @@ export interface AuthTokensResponse {
   refreshToken?: string; // refresh absent on some flows (e.g., refresh endpoint only returns access)
 }
 
-export type LoginResponse = LoginMfaRequiredResponse | AuthTokensResponse;
+export type LoginResponse =
+  | LoginMfaRequiredResponse
+  | LoginMfaSetupResponse
+  | AuthTokensResponse;
 
 export interface RefreshResponse {
   accessToken: string;
@@ -28,9 +36,7 @@ export interface EnableMfaResponse {
 
 export interface VerifyMfaEnableResponse { ok: boolean }
 
-export type VerifyMfaLoginResponse = AuthTokensResponse;
-
-export type VerifyMfaResponse = VerifyMfaEnableResponse | VerifyMfaLoginResponse;
+export type VerifyMfaResponse = VerifyMfaEnableResponse | AuthTokensResponse;
 
 // ---------- Request Payload Type Definitions ----------
 interface JsonRequestOptions<TBody> {
@@ -75,7 +81,21 @@ async function jsonRequest<TResponse, TBody = unknown>(
 
 // Optional: runtime type guards (lightweight examples)
 function isLoginMfaRequired(r: unknown): r is LoginMfaRequiredResponse {
-  return typeof r === 'object' && r !== null && (r as any).mfaRequired === true && typeof (r as any).userId === 'string'; // eslint-disable-line @typescript-eslint/no-explicit-any
+  return (
+    typeof r === 'object' &&
+    r !== null &&
+    (r as any).requiresMfa === true &&
+    typeof (r as any).userId === 'string'
+  );
+}
+
+function isLoginMfaSetup(r: unknown): r is LoginMfaSetupResponse {
+  return (
+    typeof r === 'object' &&
+    r !== null &&
+    (r as any).requiresMfaSetup === true &&
+    typeof (r as any).preAuthToken === 'string'
+  );
 }
 
 export const authService = {
@@ -84,8 +104,11 @@ export const authService = {
       '/auth/login',
       { body: { email, password } },
     );
-    // Basic structural sanity (can expand as needed)
-    if (!isLoginMfaRequired(resp) && typeof resp.accessToken !== 'string') {
+    if (
+      !isLoginMfaRequired(resp) &&
+      !isLoginMfaSetup(resp) &&
+      typeof (resp as AuthTokensResponse).accessToken !== 'string'
+    ) {
       throw new Error('Unexpected login response shape');
     }
     return resp;
@@ -99,6 +122,42 @@ export const authService = {
     return jsonRequest<VerifyMfaResponse, { userId: string; token: string; purpose?: 'enable' | 'login' }>(
       '/auth/verify-mfa',
       { body: { userId, token, purpose } },
+    );
+  },
+
+  async verifyTotpLogin(userId: string, code: string): Promise<AuthTokensResponse> {
+    return jsonRequest<AuthTokensResponse, { userId: string; code: string }>(
+      '/auth/mfa/totp/verify',
+      { body: { userId, code } },
+    );
+  },
+
+  async recoveryLogin(email: string, recoveryCode: string): Promise<AuthTokensResponse> {
+    return jsonRequest<AuthTokensResponse, { email: string; recoveryCode: string }>(
+      '/auth/mfa/recovery-login',
+      { body: { email, recoveryCode } },
+    );
+  },
+
+  async initTotpSetup(preAuthToken: string): Promise<{ otpauthUrl: string; qrSvgDataUrl: string }> {
+    return jsonRequest<{ otpauthUrl: string; qrSvgDataUrl: string }>(
+      '/auth/mfa/totp/init',
+      { headers: { Authorization: `Bearer ${preAuthToken}` } },
+    );
+  },
+
+  async verifyTotpSetup(preAuthToken: string, code: string): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    recoveryCodes: string[];
+    recoveryCodesShownOnce: boolean;
+  }> {
+    return jsonRequest(
+      '/auth/mfa/totp/verify-setup',
+      {
+        headers: { Authorization: `Bearer ${preAuthToken}` },
+        body: { code },
+      },
     );
   },
 
@@ -130,16 +189,40 @@ export const authService = {
     );
   },
 
-  async enableMfa(accessToken: string): Promise<EnableMfaResponse> {
-    return jsonRequest<EnableMfaResponse>('/auth/enable-mfa', {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-  },
-
   async me(accessToken: string): Promise<{ id: string; email: string; role: string; mfaEnabled: boolean; hasMfaSecret: boolean }> {
     return jsonRequest('/auth/me', {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
+  },
+
+  async getRecoveryCodes(accessToken: string): Promise<{ recoveryCodes: { code: string; usedAt: Date | null }[] }> {
+    // GET request using fetch directly since jsonRequest uses POST
+    const res = await fetch(`${getApiBase()}/auth/mfa/recovery-codes`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+    if (!res.ok) {
+      let detail = '';
+      try {
+        detail = await res.text();
+      } catch {
+        /* ignore */
+      }
+      throw new Error(`Request failed (${res.status}) ${detail}`.trim());
+    }
+    return await res.json();
+  },
+
+  async regenerateRecoveryCodes(accessToken: string, code: string): Promise<{ recoveryCodes: string[] }> {
+    return jsonRequest<{ recoveryCodes: string[] }, { code: string }>(
+      '/auth/mfa/recovery-codes/regen',
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: { code },
+      },
+    );
   },
 } as const;
 

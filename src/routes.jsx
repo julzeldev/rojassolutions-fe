@@ -5,9 +5,16 @@ import { RootLayout } from './ui/layouts/RootLayout.tsx'
 import { HomePage } from './ui/pages/HomePage.tsx'
 import { AboutPage } from './ui/pages/AboutPage.jsx'
 import { NotFoundPage } from './ui/pages/NotFoundPage.jsx'
-import { LoginPage } from './ui/pages/unauthorized/LoginPage.jsx'
+import { LoginPage } from './ui/pages/unauthorized/LoginPage.tsx'
+import { ForgotPasswordPage } from './ui/pages/unauthorized/ForgotPasswordPage.tsx'
+import { ResetPasswordPage } from './ui/pages/unauthorized/ResetPasswordPage.tsx'
+import { MfaVerifyPage } from './ui/pages/unauthorized/MfaVerifyPage.tsx'
+import { MfaSetupIntroPage } from './ui/pages/unauthorized/MfaSetupIntroPage.tsx'
+import { MfaSetupTotpPage } from './ui/pages/unauthorized/MfaSetupTotpPage.tsx'
+import { MfaSetupVerifyPage } from './ui/pages/unauthorized/MfaSetupVerifyPage.tsx'
+import { MfaRecoveryPage } from './ui/pages/unauthorized/MfaRecoveryPage.tsx'
 import { ProtectedRoute } from './components/ProtectedRoute.jsx'
-import { SecuritySettings } from './ui/pages/settings/SecuritySettings.jsx'
+import { SecuritySettings } from './ui/pages/settings/SecuritySettings.tsx'
 import { EmployeesPage } from './ui/pages/employees/EmployeesPage.tsx'
 import { EmployeeDetailPage } from './ui/pages/employees/detail/EmployeeDetailPage.tsx'
 
@@ -43,6 +50,13 @@ export const router = createBrowserRouter([
         </ProtectedRoute>
       ) },
       { path: 'login', element: <LoginPage /> },
+      { path: 'forgot-password', element: <ForgotPasswordPage /> },
+      { path: 'reset-password', element: <ResetPasswordPage /> },
+      { path: 'mfa/verify', element: <MfaVerifyPage /> },
+      { path: 'mfa/setup-intro', element: <MfaSetupIntroPage /> },
+      { path: 'mfa/setup/totp', element: <MfaSetupTotpPage /> },
+      { path: 'mfa/setup/verify', element: <MfaSetupVerifyPage /> },
+      { path: 'mfa/recovery', element: <MfaRecoveryPage /> },
       { path: '*', element: (
         <ProtectedRoute>
           <NotFoundPage />
