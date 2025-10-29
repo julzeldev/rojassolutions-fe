@@ -38,7 +38,7 @@ interface RecoveryCode {
 }
 
 export function SecuritySettings() {
-  const { accessToken, logout } = useAuth()
+  const { accessToken } = useAuth()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
