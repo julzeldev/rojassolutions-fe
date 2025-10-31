@@ -16,8 +16,8 @@ import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import EditNoteIcon from '@mui/icons-material/EditNote';
+import PersonOffIcon from '@mui/icons-material/PersonOff';
 import type { Employee } from '../../../employees/useEmployee';
 
 interface EmployeeTableProps {
@@ -126,6 +126,8 @@ export function EmployeeTable({ employees, isLoading, onEdit, onDelete, onSelect
               gap: 1.5,
               cursor: 'pointer',
               transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+              opacity: employee.status === 'inactive' ? 0.6 : 1,
+              backgroundColor: employee.status === 'inactive' ? 'action.hover' : 'transparent',
               '&:focus-visible': {
                 outline: '2px solid',
                 outlineColor: 'primary.main',
@@ -139,7 +141,7 @@ export function EmployeeTable({ employees, isLoading, onEdit, onDelete, onSelect
           >
             <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
               <Typography variant="subtitle1" fontWeight={600} sx={{ flex: 1, minWidth: 0 }}>
-                {`${employee.firstName} ${employee.lastName}`}
+                {`${employee.firstName} ${employee.firstLastName}${employee.secondLastName ? ' ' + employee.secondLastName : ''}`}
               </Typography>
               <Chip
                 label={employee.status === 'active' ? 'Activo' : 'Inactivo'}
@@ -163,6 +165,12 @@ export function EmployeeTable({ employees, isLoading, onEdit, onDelete, onSelect
               </Box>
               <Box>
                 <Typography variant="caption" color="text.secondary">
+                  Puesto
+                </Typography>
+                <Typography variant="body2">{employee.position || 'N/A'}</Typography>
+              </Box>
+              <Box>
+                <Typography variant="caption" color="text.secondary">
                   Fecha de ingreso
                 </Typography>
                 <Typography variant="body2">{formatDate(employee.dateOfHire) || 'N/A'}</Typography>
@@ -172,24 +180,26 @@ export function EmployeeTable({ employees, isLoading, onEdit, onDelete, onSelect
             <Divider />
 
             <Stack direction="row" justifyContent="flex-end" spacing={1} flexWrap="wrap">
-              <Tooltip title="Editar">
+              <Tooltip title="Edición rápida">
                 <IconButton
                   size="small"
                   onClick={handleEditClick}
                   data-id={employee.id}
                   aria-label={`editar ${employee.firstName}`}
+                  color="primary"
                 >
-                  <EditIcon fontSize="small" />
+                  <EditNoteIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Eliminar">
+              <Tooltip title="Marcar inactivo">
                 <IconButton
                   size="small"
                   onClick={handleDeleteClick}
                   data-id={employee.id}
                   aria-label={`eliminar ${employee.firstName}`}
+                  color="error"
                 >
-                  <DeleteIcon fontSize="small" />
+                  <PersonOffIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
             </Stack>
@@ -207,7 +217,7 @@ export function EmployeeTable({ employees, isLoading, onEdit, onDelete, onSelect
             <TableCell>Nombre</TableCell>
             <TableCell>Documento</TableCell>
             <TableCell>Teléfono</TableCell>
-            <TableCell>Estado</TableCell>
+            <TableCell>Puesto</TableCell>
             <TableCell>Fecha de ingreso</TableCell>
             <TableCell align="right">Acciones</TableCell>
           </TableRow>
@@ -220,32 +230,42 @@ export function EmployeeTable({ employees, isLoading, onEdit, onDelete, onSelect
               tabIndex={-1}
               data-id={employee.id}
               onClick={handleRowClick}
-              sx={{ cursor: 'pointer' }}
+              sx={{
+                cursor: 'pointer',
+                opacity: employee.status === 'inactive' ? 0.5 : 1,
+                backgroundColor: employee.status === 'inactive' ? 'action.hover' : 'transparent',
+                '&:hover': {
+                  backgroundColor:
+                    employee.status === 'inactive' ? 'action.selected' : 'action.hover',
+                },
+              }}
             >
-              <TableCell>{`${employee.firstName} ${employee.lastName}`}</TableCell>
+              <TableCell>{`${employee.firstName} ${employee.firstLastName}${employee.secondLastName ? ' ' + employee.secondLastName : ''}`}</TableCell>
               <TableCell>{employee.documentId}</TableCell>
               <TableCell>{employee.phone}</TableCell>
-              <TableCell>{employee.status === 'active' ? 'Activo' : 'Inactivo'}</TableCell>
+              <TableCell>{employee.position || 'N/A'}</TableCell>
               <TableCell>{formatDate(employee.dateOfHire)}</TableCell>
               <TableCell align="right">
-                <Tooltip title="Editar">
+                <Tooltip title="Edición rápida">
                   <IconButton
                     size="small"
                     onClick={handleEditClick}
                     data-id={employee.id}
                     aria-label={`editar ${employee.firstName}`}
+                    color="primary"
                   >
-                    <EditIcon fontSize="small" />
+                    <EditNoteIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title="Eliminar">
+                <Tooltip title="Marcar inactivo">
                   <IconButton
                     size="small"
                     onClick={handleDeleteClick}
                     data-id={employee.id}
                     aria-label={`eliminar ${employee.firstName}`}
+                    color="error"
                   >
-                    <DeleteIcon fontSize="small" />
+                    <PersonOffIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
               </TableCell>

@@ -1,7 +1,21 @@
 export type EmployeeStatus = "active" | "inactive";
 export type SalarySchedule = "monthly" | "biweekly" | "weekly" | "hourly";
+export type MaritalStatus = "single" | "married" | "divorced" | "widowed" | "free_union";
 
 type MaybeDate = string | Date | null | undefined;
+
+export interface Address {
+  province?: string;
+  canton?: string;
+  district?: string;
+  exactAddress?: string;
+}
+
+export interface EmergencyContact {
+  name?: string;
+  phone?: string;
+  relationship?: string;
+}
 
 interface SalaryEntryResponse {
   amountCents: number;
@@ -37,14 +51,25 @@ export interface SalaryEntry {
 interface EmployeeResponse {
   _id?: string;
   id?: string;
-  firstName: string;
-  lastName: string;
-  dob: string | Date;
-  dateOfHire: string | Date;
   documentId: string;
+  firstName: string;
+  firstLastName: string;
+  secondLastName?: string;
+  nationality?: string;
+  dob: string | Date;
+  maritalStatus?: MaritalStatus;
+  education?: string;
   phone: string;
   email?: string | null;
+  address?: Address;
+  emergencyContact?: EmergencyContact;
+  dateOfHire: string | Date;
+  position?: string;
   status: EmployeeStatus;
+  shirtSize?: string;
+  shoeSize?: string;
+  bankAccount?: string;
+  notes?: string;
   userId?: string;
   salaryHistory?: SalaryEntryResponse[];
   documents?: EmployeeDocumentAttachmentResponse[];
@@ -64,11 +89,26 @@ export interface Employee
     | "updatedAt"
   > {
   id: string;
-  salaryHistory: SalaryEntry[];
+  documentId: string;
+  firstName: string;
+  firstLastName: string;
+  secondLastName?: string;
+  nationality?: string;
   dob: string;
-  dateOfHire: string;
+  maritalStatus?: MaritalStatus;
+  education?: string;
   phone: string;
   email?: string;
+  address?: Address;
+  emergencyContact?: EmergencyContact;
+  dateOfHire: string;
+  position?: string;
+  status: EmployeeStatus;
+  shirtSize?: string;
+  shoeSize?: string;
+  bankAccount?: string;
+  notes?: string;
+  salaryHistory: SalaryEntry[];
   documents: EmployeeDocumentAttachment[];
   createdAt?: string;
   updatedAt?: string;
@@ -101,14 +141,25 @@ export interface EmployeeQueryParams {
 }
 
 export interface CreateEmployeePayload {
-  firstName: string;
-  lastName: string;
-  dob: string;
-  dateOfHire: string;
   documentId: string;
+  firstName: string;
+  firstLastName: string;
+  secondLastName?: string;
+  nationality?: string;
+  dob: string;
+  maritalStatus?: MaritalStatus;
+  education?: string;
   phone: string;
   email?: string;
+  address?: Address;
+  emergencyContact?: EmergencyContact;
+  dateOfHire: string;
+  position?: string;
   status?: EmployeeStatus;
+  shirtSize?: string;
+  shoeSize?: string;
+  bankAccount?: string;
+  notes?: string;
 }
 
 export type UpdateEmployeePayload = Partial<CreateEmployeePayload>;
@@ -188,14 +239,25 @@ function normalizeEmployee(raw: EmployeeResponse): Employee {
   if (!id) throw new Error("Employee record missing identifier");
   return {
     id,
-    firstName: raw.firstName,
-    lastName: raw.lastName,
-    dob: normalizeDate(raw.dob) ?? "",
-    dateOfHire: normalizeDate(raw.dateOfHire) ?? "",
     documentId: raw.documentId,
+    firstName: raw.firstName,
+    firstLastName: raw.firstLastName,
+    secondLastName: raw.secondLastName,
+    nationality: raw.nationality,
+    dob: normalizeDate(raw.dob) ?? "",
+    maritalStatus: raw.maritalStatus,
+    education: raw.education,
     phone: raw.phone,
     email: raw.email ?? undefined,
+    address: raw.address,
+    emergencyContact: raw.emergencyContact,
+    dateOfHire: normalizeDate(raw.dateOfHire) ?? "",
+    position: raw.position,
     status: raw.status,
+    shirtSize: raw.shirtSize,
+    shoeSize: raw.shoeSize,
+    bankAccount: raw.bankAccount,
+    notes: raw.notes,
     userId: raw.userId,
     salaryHistory: (raw.salaryHistory ?? []).map(normalizeSalary),
     documents: (raw.documents ?? []).map(normalizeDocument),

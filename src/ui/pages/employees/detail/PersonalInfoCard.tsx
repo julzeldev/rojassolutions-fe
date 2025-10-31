@@ -52,7 +52,7 @@ function toDateInput(value: string): string {
 
 function toApiDate(value: string): string | undefined {
   if (!value) return undefined;
-  return value.replace(/-/g, '/');
+  return value;
 }
 
 export function PersonalInfoCard({ employee, isLoading, isSaving, error, onSubmit }: PersonalInfoCardProps) {
