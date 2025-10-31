@@ -5,15 +5,18 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
-import type { EmployeeStatus, CreateEmployeePayload } from '../../../employees/useEmployee';
+import type { EmployeeStatus } from '../../../employees/useEmployee';
 import { useEmployee } from '../../../employees/useEmployee';
 import { EmployeeToolbar } from './EmployeeToolbar';
 import { EmployeeTable } from './EmployeeTable';
-import { EmployeeFormDialog } from './EmployeeFormDialog';
+import { QuickEditDialog } from './QuickEditDialog';
 import { ConfirmDialog } from '../../../components/ConfirmDialog';
+import { ImportExportDialog } from './ImportExportDialog';
+import { useAuth } from '../../../auth/useAuth';
 
 export function EmployeesPage() {
   const navigate = useNavigate();
+  const { accessToken } = useAuth();
   const {
     employees,
     isLoadingList,
@@ -29,8 +32,8 @@ export function EmployeesPage() {
 
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<EmployeeStatus | ''>('');
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
+  const [isQuickEditOpen, setIsQuickEditOpen] = useState(false);
+  const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [isSnackbarOpen, setIsSnackbarOpen] = useState(false);
@@ -61,15 +64,12 @@ export function EmployeesPage() {
   }, []);
 
   const handleCreateClick = useCallback(() => {
-    setFormMode('create');
-    setSelectedEmployeeId(null);
-    setIsFormOpen(true);
-  }, []);
+    navigate('/empleados/nuevo');
+  }, [navigate]);
 
   const handleEditRequest = useCallback((id: string) => {
-    setFormMode('edit');
     setSelectedEmployeeId(id);
-    setIsFormOpen(true);
+    setIsQuickEditOpen(true);
   }, []);
 
   const handleDeleteRequest = useCallback((id: string) => {
@@ -83,26 +83,24 @@ export function EmployeesPage() {
     [navigate],
   );
 
-  const handleCloseForm = useCallback(() => {
-    setIsFormOpen(false);
+  const handleCloseQuickEdit = useCallback(() => {
+    setIsQuickEditOpen(false);
+    setSelectedEmployeeId(null);
   }, []);
 
-  const handleFormSubmit = useCallback(
-    async (payload: CreateEmployeePayload) => {
+  const handleQuickEditSubmit = useCallback(
+    async (payload: { firstName: string; firstLastName: string; secondLastName: string; phone: string; email: string }) => {
+      if (!selectedEmployeeId) return;
       try {
-        if (formMode === 'create') {
-          await createEmployee(payload);
-        } else if (selectedEmployeeId) {
-          await updateEmployee(selectedEmployeeId, payload);
-        }
-        setIsFormOpen(false);
+        await updateEmployee(selectedEmployeeId, payload);
+        setIsQuickEditOpen(false);
         setSelectedEmployeeId(null);
         setIsSnackbarOpen(true);
       } catch {
         setIsSnackbarOpen(true);
       }
     },
-    [createEmployee, formMode, selectedEmployeeId, updateEmployee],
+    [selectedEmployeeId, updateEmployee],
   );
 
   const handleConfirmDelete = useCallback(async () => {
@@ -129,6 +127,55 @@ export function EmployeesPage() {
     listEmployees(listParams).catch(() => undefined);
   }, [listEmployees, listParams]);
 
+  const handleExport = useCallback(async (format: 'csv' | 'xlsx' = 'csv') => {
+    try {
+      const apiBase = (import.meta as any)?.env?.VITE_API_BASE as string | undefined; // eslint-disable-line @typescript-eslint/no-explicit-any
+      const apiUrl = apiBase || 'http://localhost:5001';
+
+      const response = await fetch(`${apiUrl}/employees/export?format=${format}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      const timestamp = new Date().toISOString().split('T')[0];
+      const extension = format === 'xlsx' ? 'xlsx' : 'csv';
+      link.download = `empleados_${timestamp}.${extension}`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      setIsSnackbarOpen(true);
+    } catch (error) {
+      console.error('Export error:', error);
+      setIsSnackbarOpen(true);
+    }
+  }, [accessToken]);
+
+  const handleImportClick = useCallback(() => {
+    setIsImportExportOpen(true);
+  }, []);
+
+  const handleImportClose = useCallback(() => {
+    setIsImportExportOpen(false);
+  }, []);
+
+  const handleImportSuccess = useCallback(() => {
+    listEmployees(listParams).catch(() => undefined);
+  }, [listEmployees, listParams]);
+
   const selectedEmployee = useMemo(() => {
     return employees.find((item) => item.id === selectedEmployeeId) ?? null;
   }, [employees, selectedEmployeeId]);
@@ -147,6 +194,7 @@ export function EmployeesPage() {
           onStatusChange={handleStatusChange}
           onCreate={handleCreateClick}
           onRefresh={handleRefresh}
+          onImport={handleImportClick}
         />
         {listError && (
           <Alert severity="error">{listError}</Alert>
@@ -162,13 +210,12 @@ export function EmployeesPage() {
           onSelect={handleSelectEmployee}
         />
       </Stack>
-      <EmployeeFormDialog
-        open={isFormOpen}
+      <QuickEditDialog
+        open={isQuickEditOpen}
         isSaving={isSaving}
-        mode={formMode}
         employee={selectedEmployee}
-        onClose={handleCloseForm}
-        onSubmit={handleFormSubmit}
+        onClose={handleCloseQuickEdit}
+        onSubmit={handleQuickEditSubmit}
       />
       <ConfirmDialog
         open={Boolean(deleteTargetId)}
@@ -179,6 +226,13 @@ export function EmployeesPage() {
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
         confirmDisabled={isDeleting}
+      />
+      <ImportExportDialog
+        open={isImportExportOpen}
+        onClose={handleImportClose}
+        onImportSuccess={handleImportSuccess}
+        onExport={handleExport}
+        accessToken={accessToken || ''}
       />
       <Snackbar
         open={isSnackbarOpen}

@@ -17,6 +17,7 @@ import { ProtectedRoute } from './components/ProtectedRoute.jsx'
 import { SecuritySettings } from './ui/pages/settings/SecuritySettings.tsx'
 import { EmployeesPage } from './ui/pages/employees/EmployeesPage.tsx'
 import { EmployeeDetailPage } from './ui/pages/employees/detail/EmployeeDetailPage.tsx'
+import { SuperAdminPage } from './ui/pages/superadmin/SuperAdminPage.tsx'
 
 export const router = createBrowserRouter([
   {
@@ -47,6 +48,11 @@ export const router = createBrowserRouter([
       { path: 'settings/security', element: (
         <ProtectedRoute>
           <SecuritySettings />
+        </ProtectedRoute>
+      ) },
+      { path: 'superadmin', element: (
+        <ProtectedRoute>
+          <SuperAdminPage />
         </ProtectedRoute>
       ) },
       { path: 'login', element: <LoginPage /> },

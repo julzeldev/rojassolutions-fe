@@ -19,6 +19,7 @@ import CelebrationIcon from '@mui/icons-material/Celebration';
 import type { Employee } from '../../employees/useEmployee';
 import { employeeService } from '../../api/employeeService';
 import { useAuth } from '../../auth/useAuth';
+import { EmployeeStatisticsSection } from './employees/EmployeeStatisticsSection';
 
 interface BirthdayNotification {
   id: string;
@@ -258,6 +259,9 @@ export function HomePage() {
           </Card>
         </Grid>
       </Grid>
+
+      {/* Employee Statistics Section */}
+      <EmployeeStatisticsSection />
     </Stack>
   );
 }
