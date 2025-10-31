@@ -244,7 +244,7 @@ export function EmployeeStatisticsSection() {
                   <Stack direction="row" alignItems="center" spacing={1}>
                     <WorkIcon color="primary" />
                     <Typography variant="h6" fontWeight={600}>
-                      Top 10 Puestos
+                      Empleado por puesto
                     </Typography>
                   </Stack>
                   <ResponsiveContainer width="100%" height={300}>
