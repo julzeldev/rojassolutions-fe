@@ -37,7 +37,6 @@ export function EmployeeToolbar({
   onImport,
 }: EmployeeToolbarProps) {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleStatusChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
