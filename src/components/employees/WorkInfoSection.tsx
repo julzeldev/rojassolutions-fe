@@ -3,7 +3,6 @@ import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
-import InputAdornment from '@mui/material/InputAdornment';
 import type { ChangeEvent } from 'react';
 
 interface WorkInfoSectionProps {
