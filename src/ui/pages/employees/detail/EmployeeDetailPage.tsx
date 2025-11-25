@@ -76,6 +76,10 @@ function toDateInputValue(value: string): string {
   return date.toISOString().slice(0, 10);
 }
 
+function toApiDate(value: string): string {
+  return value;
+}
+
 const EMPTY_VALUES: EmployeeFormValues = {
   firstName: '',
   firstLastName: '',
