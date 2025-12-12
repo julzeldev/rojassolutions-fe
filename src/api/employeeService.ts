@@ -71,6 +71,7 @@ interface EmployeeResponse {
   bankAccount?: string;
   notes?: string;
   userId?: string;
+  subsidiaryId?: string;
   salaryHistory?: SalaryEntryResponse[];
   documents?: EmployeeDocumentAttachmentResponse[];
   createdAt?: string | Date;
@@ -108,6 +109,7 @@ export interface Employee
   shoeSize?: string;
   bankAccount?: string;
   notes?: string;
+  subsidiaryId?: string;
   salaryHistory: SalaryEntry[];
   documents: EmployeeDocumentAttachment[];
   createdAt?: string;
@@ -160,6 +162,7 @@ export interface CreateEmployeePayload {
   shoeSize?: string;
   bankAccount?: string;
   notes?: string;
+  subsidiaryId?: string;
 }
 
 export type UpdateEmployeePayload = Partial<CreateEmployeePayload>;

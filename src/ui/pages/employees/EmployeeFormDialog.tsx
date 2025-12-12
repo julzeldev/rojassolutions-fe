@@ -42,6 +42,7 @@ interface EmployeeFormValues {
   status: 'active' | 'inactive';
   shirtSize: string;
   shoeSize: string;
+  subsidiaryId: string;
   // Financial
   bankAccount: string;
   // Additional
@@ -91,6 +92,7 @@ const EMPTY_VALUES: EmployeeFormValues = {
   status: 'active',
   shirtSize: '',
   shoeSize: '',
+  subsidiaryId: '',
   bankAccount: '',
   notes: '',
 };
@@ -133,6 +135,7 @@ export function EmployeeFormDialog({
           status: employee.status || 'active',
           shirtSize: employee.shirtSize || '',
           shoeSize: employee.shoeSize || '',
+          subsidiaryId: employee.subsidiaryId || '',
           bankAccount: employee.bankAccount || '',
           notes: employee.notes || '',
         });
@@ -220,6 +223,7 @@ export function EmployeeFormDialog({
         status: values.status,
         shirtSize: values.shirtSize.trim() || undefined,
         shoeSize: values.shoeSize.trim() || undefined,
+        subsidiaryId: values.subsidiaryId || undefined,
         bankAccount: values.bankAccount.trim() || undefined,
         notes: values.notes.trim() || undefined,
       };

@@ -17,8 +17,8 @@ export interface NavigationItem {
 export const navigationItems: NavigationItem[] = [
   { label: 'Inicio', path: '/', icon: HomeOutlinedIcon },
   { label: 'Empleados', path: '/empleados', icon: PeopleAltOutlinedIcon },
+  { label: 'Sucursales', path: '/sucursales', icon: BusinessOutlinedIcon },
   { label: 'Acerca de', path: '/about', icon: InfoOutlinedIcon },
-  { label: 'Subsidiarias', path: '/subsidiarias', icon: BusinessOutlinedIcon, disabled: true },
   { label: 'Inventario', path: '/inventario', icon: Inventory2OutlinedIcon, disabled: true },
-  { label: 'Calendario', path: '/calendario', icon: CalendarMonthOutlinedIcon, disabled: true },
+  { label: 'Calendario', path: '/calendario', icon: CalendarMonthOutlinedIcon },
 ];

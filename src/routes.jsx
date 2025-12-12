@@ -18,6 +18,7 @@ import { SecuritySettings } from './ui/pages/settings/SecuritySettings.tsx'
 import { EmployeesPage } from './ui/pages/employees/EmployeesPage.tsx'
 import { EmployeeDetailPage } from './ui/pages/employees/detail/EmployeeDetailPage.tsx'
 import { SuperAdminPage } from './ui/pages/superadmin/SuperAdminPage.tsx'
+import SubsidiariesPage from './ui/pages/subsidiaries/SubsidiariesPage.tsx'
 
 export const router = createBrowserRouter([
   {
@@ -43,6 +44,11 @@ export const router = createBrowserRouter([
       { path: 'empleados/:id', element: (
         <ProtectedRoute>
           <EmployeeDetailPage />
+        </ProtectedRoute>
+      ) },
+      { path: 'sucursales', element: (
+        <ProtectedRoute>
+          <SubsidiariesPage />
         </ProtectedRoute>
       ) },
       { path: 'settings/security', element: (

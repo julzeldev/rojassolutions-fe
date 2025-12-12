@@ -63,6 +63,7 @@ interface EmployeeFormValues {
   status: 'active' | 'inactive';
   shirtSize: string;
   shoeSize: string;
+  subsidiaryId: string;
   // Financial
   bankAccount: string;
   // Additional
@@ -99,6 +100,7 @@ const EMPTY_VALUES: EmployeeFormValues = {
   status: 'active',
   shirtSize: '',
   shoeSize: '',
+  subsidiaryId: '',
   bankAccount: '',
   notes: '',
 };
@@ -175,6 +177,7 @@ export function EmployeeDetailPage() {
         status: employee.status || 'active',
         shirtSize: employee.shirtSize || '',
         shoeSize: employee.shoeSize || '',
+        subsidiaryId: employee.subsidiaryId || '',
         bankAccount: employee.bankAccount || '',
         notes: employee.notes || '',
       });
@@ -232,6 +235,7 @@ export function EmployeeDetailPage() {
           status: employee.status || 'active',
           shirtSize: employee.shirtSize || '',
           shoeSize: employee.shoeSize || '',
+          subsidiaryId: employee.subsidiaryId || '',
           bankAccount: employee.bankAccount || '',
           notes: employee.notes || '',
         });
@@ -307,6 +311,7 @@ export function EmployeeDetailPage() {
       status: formValues.status,
       shirtSize: formValues.shirtSize.trim() || undefined,
       shoeSize: formValues.shoeSize.trim() || undefined,
+      subsidiaryId: formValues.subsidiaryId || undefined,
       bankAccount: formValues.bankAccount.trim() || undefined,
       notes: formValues.notes.trim() || undefined,
     };
